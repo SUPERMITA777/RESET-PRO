@@ -4,10 +4,10 @@ import { prisma } from '@/lib/prisma';
 // DELETE /api/treatments/:id
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
-    const id = parseInt(params.id);
+    const id = parseInt(context.params.id);
     
     // Verificar si el tratamiento existe
     const treatment = await prisma.treatment.findUnique({

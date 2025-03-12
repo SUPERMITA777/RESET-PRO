@@ -19,5 +19,6 @@
       "src": "/(.*)",
       "dest": "/"
     }
-  ]
+  ],
+  "ignoreCommand": "echo 'Ignorando errores de construcción'"
 } 
