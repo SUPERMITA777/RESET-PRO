@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import prisma from '@/lib/prisma';
 
 // GET /api/appointments
 export async function GET() {
@@ -24,8 +24,11 @@ export async function GET() {
 
     return NextResponse.json(formattedAppointments);
   } catch (error) {
-    console.error("Error al obtener citas:", error);
-    return NextResponse.json({ error: 'Error al obtener las citas' }, { status: 500 });
+    console.error('Error al obtener appointments:', error);
+    return NextResponse.json(
+      { error: 'Error al obtener appointments' },
+      { status: 500 }
+    );
   }
 }
 
@@ -75,8 +78,11 @@ export async function POST(request: Request) {
     
     return NextResponse.json(formattedAppointment, { status: 201 });
   } catch (error) {
-    console.error("Error al crear cita:", error);
-    return NextResponse.json({ error: 'Error al crear la cita' }, { status: 400 });
+    console.error('Error al crear appointment:', error);
+    return NextResponse.json(
+      { error: 'Error al crear appointment' },
+      { status: 500 }
+    );
   }
 }
 
@@ -136,8 +142,11 @@ export async function PUT(request: Request) {
     
     return NextResponse.json(formattedAppointment);
   } catch (error) {
-    console.error("Error al actualizar cita:", error);
-    return NextResponse.json({ error: 'Error al actualizar la cita' }, { status: 400 });
+    console.error('Error al actualizar appointment:', error);
+    return NextResponse.json(
+      { error: 'Error al actualizar appointment' },
+      { status: 500 }
+    );
   }
 }
 

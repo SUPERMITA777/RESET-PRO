@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import prisma from '@/lib/prisma';
 
 // GET /api/clients
 export async function GET() {
@@ -13,8 +13,11 @@ export async function GET() {
     console.log(`Obtenidos ${clients.length} clientes de la base de datos`);
     return NextResponse.json(clients);
   } catch (error) {
-    console.error("Error al obtener clientes:", error);
-    return NextResponse.json({ error: 'Error al obtener los clientes' }, { status: 500 });
+    console.error('Error al obtener clients:', error);
+    return NextResponse.json(
+      { error: 'Error al obtener clients' },
+      { status: 500 }
+    );
   }
 }
 
@@ -44,8 +47,11 @@ export async function POST(request: Request) {
     
     return NextResponse.json(newClient, { status: 201 });
   } catch (error) {
-    console.error("Error al crear cliente:", error);
-    return NextResponse.json({ error: 'Error al crear el cliente' }, { status: 400 });
+    console.error('Error al crear client:', error);
+    return NextResponse.json(
+      { error: 'Error al crear client' },
+      { status: 500 }
+    );
   }
 }
 

@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { getCurrentDateArgentina } from '@/lib/date-utils';
+import prisma from '@/lib/prisma';
 
 // Definimos la interfaz para el tipo Treatment
 interface Treatment {
@@ -32,72 +31,6 @@ interface Availability {
   box: string;
 }
 
-// Obtenemos el año actual en Argentina
-const currentYear = new Date().getFullYear();
-const currentDate = getCurrentDateArgentina();
-
-// Datos iniciales de tratamientos - FECHAS FIJAS para evitar problemas
-let treatments: Treatment[] = [
-  {
-    id: 1,
-    name: "Limpieza Facial",
-    description: "Tratamiento básico de limpieza facial",
-    duration: 60,
-    price: 5000,
-    isSubtreatment: false,
-    parentId: null,
-    availability: [
-      {
-        id: 1,
-        startDate: "2025-01-01", // FECHA FIJA
-        endDate: "2025-12-31", // FECHA FIJA
-        startTime: "09:00",
-        endTime: "17:00",
-        box: "Box 1"
-      }
-    ]
-  },
-  {
-    id: 2,
-    name: "Limpieza Facial Profunda",
-    description: "Limpieza facial con exfoliación y mascarilla",
-    duration: 90,
-    price: 7500,
-    isSubtreatment: true,
-    parentId: 1,
-    availability: null
-  },
-  {
-    id: 3,
-    name: "Masaje Relajante",
-    description: "Masaje corporal para relajación",
-    duration: 60,
-    price: 6000,
-    isSubtreatment: false,
-    parentId: null,
-    availability: [
-      {
-        id: 2,
-        startDate: "2025-01-01", // FECHA FIJA
-        endDate: "2025-12-31", // FECHA FIJA
-        startTime: "09:00",
-        endTime: "17:00",
-        box: "Box 2"
-      }
-    ]
-  },
-  {
-    id: 4,
-    name: "Masaje Descontracturante",
-    description: "Masaje para aliviar contracturas musculares",
-    duration: 60,
-    price: 7000,
-    isSubtreatment: true,
-    parentId: 3,
-    availability: null
-  }
-];
-
 // GET /api/treatments
 export async function GET() {
   try {
@@ -117,6 +50,7 @@ export async function GET() {
       price: treatment.price,
       isSubtreatment: treatment.isSubtreatment,
       parentId: treatment.parentId,
+      alwaysAvailable: treatment.alwaysAvailable,
       availability: treatment.availability.map(avail => ({
         id: avail.id,
         startDate: avail.startDate.toISOString().split('T')[0],
@@ -129,8 +63,11 @@ export async function GET() {
 
     return NextResponse.json(formattedTreatments);
   } catch (error) {
-    console.error("Error al obtener tratamientos:", error);
-    return NextResponse.json({ error: 'Error al obtener los tratamientos' }, { status: 500 });
+    console.error('Error al obtener treatments:', error);
+    return NextResponse.json(
+      { error: 'Error al obtener treatments' },
+      { status: 500 }
+    );
   }
 }
 
@@ -187,8 +124,11 @@ export async function POST(request: Request) {
     
     return NextResponse.json(formattedTreatment, { status: 201 });
   } catch (error) {
-    console.error("Error al crear tratamiento:", error);
-    return NextResponse.json({ error: 'Error al crear el tratamiento' }, { status: 400 });
+    console.error('Error al crear treatment:', error);
+    return NextResponse.json(
+      { error: 'Error al crear treatment' },
+      { status: 500 }
+    );
   }
 }
 
@@ -226,7 +166,13 @@ export async function PUT(request: Request) {
         alwaysAvailable: body.alwaysAvailable || false,
         parentId: body.parentId,
         availability: {
-          create: body.availability || [],
+          create: body.availability ? body.availability.map((avail: any) => ({
+            startDate: new Date(avail.startDate),
+            endDate: new Date(avail.endDate),
+            startTime: avail.startTime,
+            endTime: avail.endTime,
+            box: avail.box,
+          })) : [],
         },
       },
       include: {
@@ -234,18 +180,10 @@ export async function PUT(request: Request) {
       },
     });
     
-    // Obtener el tratamiento actualizado con su disponibilidad
-    const treatmentWithAvailability = await prisma.treatment.findUnique({
-      where: { id: updatedTreatment.id },
-      include: { availability: true },
-    });
-    
-    console.log("Tratamiento actualizado:", JSON.stringify(treatmentWithAvailability, null, 2));
-    
     // Formatear la respuesta
     const formattedTreatment = {
-      ...treatmentWithAvailability,
-      availability: treatmentWithAvailability?.availability.map(avail => ({
+      ...updatedTreatment,
+      availability: updatedTreatment.availability.map(avail => ({
         id: avail.id,
         startDate: avail.startDate.toISOString().split('T')[0],
         endDate: avail.endDate.toISOString().split('T')[0],
@@ -254,6 +192,8 @@ export async function PUT(request: Request) {
         box: avail.box,
       })),
     };
+    
+    console.log("Tratamiento actualizado:", JSON.stringify(formattedTreatment, null, 2));
     
     return NextResponse.json(formattedTreatment);
   } catch (error) {
@@ -265,7 +205,6 @@ export async function PUT(request: Request) {
 // DELETE /api/treatments/:id
 export async function DELETE(request: Request) {
   try {
-    // Redireccionar a la ruta dinámica [id]
     const url = new URL(request.url);
     const pathParts = url.pathname.split('/');
     const idPart = pathParts[pathParts.length - 1];
@@ -274,12 +213,25 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'ID de tratamiento no especificado' }, { status: 400 });
     }
     
-    // En lugar de implementar la lógica aquí, vamos a redireccionar a la ruta dinámica
-    return NextResponse.json({ 
-      error: 'Esta ruta está deshabilitada. Use /api/treatments/{id} con método DELETE para eliminar un tratamiento.' 
-    }, { status: 400 });
+    const id = parseInt(idPart);
+    
+    // Verificar si el tratamiento existe
+    const existingTreatment = await prisma.treatment.findUnique({
+      where: { id },
+    });
+    
+    if (!existingTreatment) {
+      return NextResponse.json({ error: 'Tratamiento no encontrado' }, { status: 404 });
+    }
+    
+    // Eliminar el tratamiento
+    await prisma.treatment.delete({
+      where: { id },
+    });
+    
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Error en la redirección DELETE:", error);
-    return NextResponse.json({ error: 'Error en la redirección DELETE' }, { status: 400 });
+    console.error("Error al eliminar tratamiento:", error);
+    return NextResponse.json({ error: 'Error al eliminar el tratamiento' }, { status: 400 });
   }
 } 

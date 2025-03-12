@@ -32,6 +32,7 @@ interface Professional {
   availability?: ProfessionalAvailability | null
   createdAt: string
   updatedAt: string
+  commissionPercentage: number
 }
 
 export default function ProfessionalsTab() {
@@ -49,6 +50,7 @@ export default function ProfessionalsTab() {
       startTime: "",
       endTime: "",
     },
+    commissionPercentage: 0,
   })
 
   useEffect(() => {
@@ -98,6 +100,7 @@ export default function ProfessionalsTab() {
         startTime: "",
         endTime: "",
       },
+      commissionPercentage: 0,
     })
   }
 
@@ -113,6 +116,7 @@ export default function ProfessionalsTab() {
           startTime: "",
           endTime: "",
         },
+        commissionPercentage: professional.commissionPercentage,
       })
     } else {
       setCurrentProfessional(null)
@@ -223,7 +227,7 @@ export default function ProfessionalsTab() {
               Nuevo Profesional
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-h-[85vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {currentProfessional ? "Editar Profesional" : "Nuevo Profesional"}
@@ -298,6 +302,15 @@ export default function ProfessionalsTab() {
                       />
                     </div>
                   </div>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="commissionPercentage">Porcentaje de Comisión</Label>
+                  <Input
+                    id="commissionPercentage"
+                    type="number"
+                    value={formData.commissionPercentage}
+                    onChange={(e) => setFormData(prev => ({ ...prev, commissionPercentage: parseFloat(e.target.value) }))}
+                  />
                 </div>
               </div>
               <DialogFooter>

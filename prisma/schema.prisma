@@ -159,3 +159,35 @@ model Payment {
   sale            Sale          @relation(fields: [saleId], references: [id])
   paymentMethod   PaymentMethod @relation(fields: [paymentMethodId], references: [id])
 }
+
+model Expense {
+  id            Int      @id @default(autoincrement())
+  description   String
+  amount        Float
+  date          DateTime
+  category      String
+  paymentMethod String?
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  OPERATOR
+  READONLY
+}
+
+model User {
+  id            Int       @id @default(autoincrement())
+  username      String    @unique
+  password      String
+  name          String
+  email         String?   @unique
+  role          UserRole  @default(OPERATOR)
+  isActive      Boolean   @default(true)
+  lastLogin     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}

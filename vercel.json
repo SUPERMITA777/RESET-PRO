@@ -2,8 +2,22 @@
   "version": 2,
   "buildCommand": "npm run build",
   "installCommand": "npm install",
+  "framework": "nextjs",
   "env": {
     "DATABASE_URL": "postgresql://neondb_owner:npg_Chb9LgKPs4mF@ep-withered-mud-a8vh18zd-pooler.eastus2.azure.neon.tech/neondb?sslmode=require",
+    "JWT_SECRET": "tu_secreto_super_seguro_y_unico_para_jwt",
     "NODE_ENV": "production"
-  }
+  },
+  "builds": [
+    {
+      "src": "next.config.mjs",
+      "use": "@vercel/next"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/"
+    }
+  ]
 } 

@@ -313,7 +313,7 @@ export default function AppointmentsTab() {
               Nuevo Turno
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-h-[85vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{currentAppointment ? "Editar Turno" : "Nuevo Turno"}</DialogTitle>
               <DialogDescription>Complete los datos del turno.</DialogDescription>

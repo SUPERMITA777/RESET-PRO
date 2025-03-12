@@ -5,20 +5,20 @@ if (!process.env.DATABASE_URL) {
   process.env.DATABASE_URL = "postgresql://postgres:1977@localhost:5432/resetv0?schema=public";
 }
 
-// Evitar múltiples instancias del cliente Prisma en desarrollo
-const globalForPrisma = global as unknown as { prisma: PrismaClient };
-
-export const prisma =
-  globalForPrisma.prisma ||
-  new PrismaClient({
-    log: ['query'],
-    datasources: {
-      db: {
-        url: process.env.DATABASE_URL
-      }
-    }
+const prismaClientSingleton = () => {
+  return new PrismaClient({
+    log: ['query', 'info', 'warn', 'error']
   });
+};
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+type PrismaClientSingleton = ReturnType<typeof prismaClientSingleton>;
 
-export default prisma; 
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClientSingleton | undefined
+};
+
+const prisma = globalForPrisma.prisma ?? prismaClientSingleton();
+
+export default prisma;
+
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma; 

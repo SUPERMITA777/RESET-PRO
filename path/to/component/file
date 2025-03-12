@@ -1,0 +1,18 @@
+function MiComponente() {
+    return (
+        <div>
+            {/* Eliminar los paneles que ya no se necesitan */}
+            {/* <Panel title="TURNOS TOTALES" /> */}
+            {/* <Panel title="INGRESOS DEL DIA" /> */}
+
+            {/* Agregar la nueva sección de CONFIGURACION */}
+            <div>
+                <h2>CONFIGURACION</h2>
+                <ul>
+                    <li>APARIENCIA</li>
+                    {/* Aquí puedes agregar más opciones de configuración en el futuro */}
+                </ul>
+            </div>
+        </div>
+    );
+} 

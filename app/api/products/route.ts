@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import prisma from '@/lib/prisma';
 
 // GET /api/products
 export async function GET() {
@@ -70,8 +70,25 @@ export async function DELETE(request: Request) {
   try {
     const url = new URL(request.url);
     const pathParts = url.pathname.split('/');
-    const id = parseInt(pathParts[pathParts.length - 1]);
+    const idPart = pathParts[pathParts.length - 1];
     
+    // Si no hay ID en la ruta, devolvemos un error
+    if (pathParts.length <= 3 || idPart === 'products') {
+      return NextResponse.json({ error: 'ID de producto no especificado' }, { status: 400 });
+    }
+    
+    const id = parseInt(idPart);
+    
+    // Verificar si el producto existe
+    const existingProduct = await prisma.product.findUnique({
+      where: { id },
+    });
+    
+    if (!existingProduct) {
+      return NextResponse.json({ error: 'Producto no encontrado' }, { status: 404 });
+    }
+    
+    // Eliminar el producto
     await prisma.product.delete({
       where: { id },
     });

@@ -161,7 +161,7 @@ export default function ProductsTab() {
               Nuevo Producto
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-h-[85vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{currentProduct ? "Editar Producto" : "Nuevo Producto"}</DialogTitle>
               <DialogDescription>

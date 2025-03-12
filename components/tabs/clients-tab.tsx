@@ -211,7 +211,7 @@ export default function ClientsTab() {
               Nuevo Cliente
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-h-[85vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{currentClient ? "Editar Cliente" : "Nuevo Cliente"}</DialogTitle>
               <DialogDescription>Complete los datos del cliente.</DialogDescription>

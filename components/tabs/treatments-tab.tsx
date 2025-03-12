@@ -423,7 +423,7 @@ export default function TreatmentsTab() {
                 Nuevo Subtratamiento
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-h-[85vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>
                   {currentTreatment

@@ -1,0 +1,11 @@
+CONFIGURACION: {
+    APARIENCIA: {
+        tema: "claro", // O "oscuro"
+        fuente: "Arial",
+        // Otras configuraciones de apariencia...
+    },
+    // Aquí puedes agregar las configuraciones necesarias
+    option1: true,
+    option2: "valor",
+    // ...
+}, 
