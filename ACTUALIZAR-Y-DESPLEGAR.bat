@@ -28,11 +28,10 @@ echo.
 echo Los cambios han sido subidos a GitHub.
 echo Vercel detectará automáticamente los cambios y comenzará el despliegue.
 echo.
-echo NOTA: Se han configurado las siguientes variables de entorno en vercel.json:
-echo - DATABASE_URL: Conexión a la base de datos PostgreSQL
-echo - NEXTAUTH_SECRET: Secreto para NextAuth
-echo - JWT_SECRET: Secreto para JWT
-echo - NEXTAUTH_URL: URL de la aplicación en Vercel
+echo NOTA: Se han configurado las variables de entorno en:
+echo - vercel.json: Para el despliegue en Vercel
+echo - .env: Para el proceso de construcción
+echo - .env.local: Para desarrollo local
 echo.
 echo NOTA: Se ejecutará automáticamente el seed para crear el usuario administrador:
 echo - Usuario: admin
