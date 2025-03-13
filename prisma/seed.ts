@@ -1,30 +1,34 @@
-const { PrismaClient } = require('@prisma/client')
-const bcrypt = require('bcryptjs')
+import { PrismaClient } from '@prisma/client'
+import * as bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
 async function main() {
-  // Crear usuarios
-  const hashedPassword = await bcrypt.hash('admin123', 10)
-  
-  const users = await prisma.user.createMany({
-    data: [
-      {
+  console.log('Iniciando seed...')
+
+  // Crear usuario administrador si no existe
+  const adminExists = await prisma.user.findUnique({
+    where: { username: 'admin' },
+  })
+
+  if (!adminExists) {
+    console.log('Creando usuario administrador...')
+    const hashedPassword = await bcrypt.hash('admin123', 10)
+    
+    await prisma.user.create({
+      data: {
         username: 'admin',
         password: hashedPassword,
-        name: 'Administrador Principal',
-        email: 'admin@empresa.com',
-        role: 'ADMIN'
+        name: 'Administrador',
+        email: 'admin@example.com',
+        role: 'ADMIN',
+        isActive: true,
       },
-      {
-        username: 'operador',
-        password: hashedPassword,
-        name: 'Operador Principal',
-        email: 'operador@empresa.com',
-        role: 'OPERATOR'
-      }
-    ]
-  })
+    })
+    console.log('Usuario administrador creado')
+  } else {
+    console.log('El usuario administrador ya existe')
+  }
 
   // Crear gastos de ejemplo
   const expenses = await prisma.expense.createMany({
@@ -48,7 +52,8 @@ async function main() {
     ]
   })
 
-  console.log({ users, expenses })
+  console.log({ expenses })
+  console.log('Seed completado')
 }
 
 main()

@@ -28,6 +28,10 @@ echo.
 echo Los cambios han sido subidos a GitHub.
 echo Vercel detectará automáticamente los cambios y comenzará el despliegue.
 echo.
+echo NOTA: Se ejecutará automáticamente el seed para crear el usuario administrador:
+echo - Usuario: admin
+echo - Contraseña: admin123
+echo.
 echo Puedes verificar el estado del despliegue en:
 echo https://vercel.com/dashboard
 echo.
