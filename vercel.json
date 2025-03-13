@@ -1,24 +1,33 @@
 {
   "version": 2,
   "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
   "installCommand": "npm install",
   "framework": "nextjs",
+  "outputDirectory": ".next",
+  "regions": ["cdg1"],
   "env": {
-    "DATABASE_URL": "postgresql://neondb_owner:npg_Chb9LgKPs4mF@ep-withered-mud-a8vh18zd-pooler.eastus2.azure.neon.tech/neondb?sslmode=require",
-    "JWT_SECRET": "tu_secreto_super_seguro_y_unico_para_jwt",
-    "NODE_ENV": "production"
+    "DATABASE_URL": "@database_url",
+    "NEXTAUTH_SECRET": "@nextauth_secret",
+    "JWT_SECRET": "@jwt_secret"
   },
-  "builds": [
+  "headers": [
     {
-      "src": "next.config.mjs",
-      "use": "@vercel/next"
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
     }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/"
-    }
-  ],
-  "ignoreCommand": "echo 'Ignorando errores de construcción'"
+  ]
 } 
