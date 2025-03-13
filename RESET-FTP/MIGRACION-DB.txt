@@ -1,0 +1,81 @@
+INSTRUCCIONES PARA MIGRAR LA BASE DE DATOS EN BYET HOSTING
+===================================================
+
+Este archivo contiene instrucciones para migrar la base de datos de PostgreSQL a MySQL en Byet Hosting.
+
+DATOS DE CONEXIÓN A LA BASE DE DATOS
+-----------------------------------
+- Host: sql113.byethost15.com
+- Usuario: b15_38507219
+- Contraseña: 2xhgwk6s
+- Nombre de la base de datos: b15_38507219
+
+PASOS PARA LA MIGRACIÓN
+----------------------
+
+1. VERIFICAR LA CONEXIÓN A LA BASE DE DATOS
+   - Asegúrate de que puedes conectarte a la base de datos MySQL con los datos proporcionados.
+   - Puedes usar herramientas como phpMyAdmin (generalmente disponible en el panel de control de Byet Hosting).
+
+2. GENERAR Y EJECUTAR LAS MIGRACIONES DE PRISMA
+   - Conéctate al servidor mediante SSH (si está disponible) y ejecuta los siguientes comandos:
+     ```
+     cd /ruta/a/tu/aplicacion
+     npx prisma migrate dev --name init
+     ```
+   - Si no tienes acceso SSH, puedes generar las migraciones localmente y luego subir los archivos SQL:
+     ```
+     npx prisma migrate dev --name init
+     ```
+     Esto generará archivos SQL en la carpeta `prisma/migrations` que puedes ejecutar manualmente en phpMyAdmin.
+
+3. VERIFICAR LA ESTRUCTURA DE LA BASE DE DATOS
+   - Después de ejecutar las migraciones, verifica que todas las tablas se hayan creado correctamente.
+   - Deberías ver las siguientes tablas:
+     - Treatment
+     - Availability
+     - Professional
+     - ProfessionalAvailability
+     - Client
+     - Appointment
+     - Product
+     - PaymentMethod
+     - Sale
+     - SaleItem
+     - Payment
+     - Expense
+     - User
+
+4. GENERAR EL CLIENTE DE PRISMA
+   - Ejecuta el siguiente comando para generar el cliente de Prisma:
+     ```
+     npx prisma generate
+     ```
+   - Esto actualizará el cliente de Prisma para que funcione con MySQL.
+
+5. INICIALIZAR LA BASE DE DATOS (OPCIONAL)
+   - Si deseas cargar datos iniciales, puedes ejecutar:
+     ```
+     npm run prisma:init
+     ```
+   - O manualmente:
+     ```
+     node prisma/init.js
+     ```
+
+SOLUCIÓN DE PROBLEMAS
+--------------------
+- Si encuentras errores de conexión, verifica que los datos de conexión sean correctos.
+- Si hay errores en las migraciones, puedes intentar ejecutar las consultas SQL manualmente en phpMyAdmin.
+- Si hay problemas con tipos de datos, es posible que necesites ajustar el schema.prisma para que sea compatible con MySQL.
+
+DIFERENCIAS ENTRE POSTGRESQL Y MYSQL
+----------------------------------
+- MySQL no soporta algunos tipos de datos que PostgreSQL sí soporta.
+- Las consultas JSON pueden comportarse de manera diferente.
+- Los índices y restricciones pueden tener sintaxis ligeramente diferente.
+
+Si encuentras problemas específicos, consulta la documentación de Prisma sobre MySQL:
+https://www.prisma.io/docs/orm/reference/database-reference/supported-databases
+
+Fecha de actualización: 12/03/2025 

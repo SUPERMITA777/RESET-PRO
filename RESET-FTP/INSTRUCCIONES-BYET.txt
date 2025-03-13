@@ -1,0 +1,70 @@
+INSTRUCCIONES PARA DESPLEGAR RESET-PRO EN BYET HOSTING
+==============================================
+
+Este archivo contiene instrucciones específicas para desplegar la aplicación RESET-PRO en Byet Hosting.
+
+PASOS PARA EL DESPLIEGUE EN BYET HOSTING
+---------------------------------------
+
+1. CREAR UNA CUENTA EN BYET HOSTING
+   - Regístrate en https://byethost.com/ si aún no tienes una cuenta.
+   - Selecciona un plan gratuito o de pago según tus necesidades.
+
+2. SUBIR ARCHIVOS VÍA FTP
+   - Accede al panel de control de Byet Hosting.
+   - Busca la sección de "FTP" o "File Manager".
+   - Obtén tus credenciales FTP (servidor, usuario, contraseña).
+   - Utiliza un cliente FTP como FileZilla para conectarte.
+   - Sube todos los archivos y carpetas de esta carpeta RESET-FTP al directorio raíz de tu hosting.
+
+3. CONFIGURAR LA BASE DE DATOS
+   - Accede al panel de control de Byet Hosting.
+   - Busca la sección "MySQL" o "Databases".
+   - Crea una nueva base de datos y un usuario con todos los permisos.
+   - Anota el nombre de la base de datos, usuario, contraseña y host.
+   - Actualiza el archivo .env con la información de tu base de datos:
+     ```
+     DATABASE_URL="mysql://usuario:contraseña@host/nombre_base_datos"
+     ```
+   - Si Byet Hosting no soporta PostgreSQL, deberás modificar el archivo prisma/schema.prisma para usar MySQL:
+     ```
+     datasource db {
+       provider = "mysql"
+       url      = env("DATABASE_URL")
+     }
+     ```
+
+4. CONFIGURAR NODE.JS
+   - Accede al panel de control de Byet Hosting.
+   - Busca la sección "Node.js" o "Application Settings".
+   - Configura la versión de Node.js (18.x o superior).
+   - Establece el punto de entrada como "server.js".
+   - Configura las variables de entorno necesarias.
+
+5. INICIAR LA APLICACIÓN
+   - Si Byet Hosting permite ejecutar comandos, ejecuta:
+     ```
+     npm install
+     npm run build
+     npm start
+     ```
+   - Si no, busca en el panel de control la opción para iniciar una aplicación Node.js.
+
+6. CONFIGURAR DOMINIO
+   - Accede al panel de control de Byet Hosting.
+   - Busca la sección "Domains" o "Subdomains".
+   - Configura tu dominio o subdominio para que apunte a la aplicación.
+
+SOLUCIÓN DE PROBLEMAS ESPECÍFICOS DE BYET HOSTING
+------------------------------------------------
+- Si encuentras errores de permisos, asegúrate de que los archivos y carpetas tengan los permisos adecuados (generalmente 755 para carpetas y 644 para archivos).
+- Si la aplicación no se inicia, verifica los logs en el panel de control de Byet Hosting.
+- Si tienes problemas con la base de datos, asegúrate de que la URL de conexión sea correcta y que la base de datos esté accesible.
+- Si Byet Hosting no soporta Node.js, considera migrar a otro proveedor como Vercel, Netlify o Render.
+
+CONTACTO Y SOPORTE
+-----------------
+- Para soporte técnico de Byet Hosting, contacta a su equipo de soporte.
+- Para problemas con la aplicación RESET-PRO, contacta al desarrollador.
+
+Fecha de actualización: 12/03/2025 
