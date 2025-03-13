@@ -97,7 +97,12 @@ export default function ReportsTab() {
 
   const fetchDailyReport = async () => {
     try {
-      const response = await fetch('/api/reports/daily');
+      // Formatear la fecha seleccionada como YYYY-MM-DD
+      const formattedDate = selectedDate ? 
+        `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}` : 
+        new Date().toISOString().split('T')[0];
+      
+      const response = await fetch(`/api/reports/daily?date=${formattedDate}`);
       if (!response.ok) {
         throw new Error(`Error al obtener el reporte: ${response.statusText}`);
       }

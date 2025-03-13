@@ -1,32 +1,22 @@
 # RESET-PRO
 
-Sistema de gestión para Reset Spa.
+Sistema de gestión para clínicas y centros de estética, desarrollado con Next.js, Prisma y PostgreSQL.
 
 ## Características
 
-- Gestión de tratamientos y subtratamientos
-- Agenda con vista diaria, semanal y mensual
-- Gestión de citas y disponibilidad
+- Gestión de citas y agenda
 - Gestión de clientes
+- Gestión de tratamientos
 - Gestión de profesionales
-- Gestión de productos
-- Gestión de ventas y pagos
-- Panel de administración
-
-## Tecnologías
-
-- Next.js 15
-- Prisma ORM
-- PostgreSQL (Neon.tech)
-- Tailwind CSS
-- Shadcn UI
-- Vercel
+- Reportes financieros
+- Respaldo y restauración de base de datos
+- Gestión de usuarios con diferentes niveles de permisos
 
 ## Requisitos
 
 - Node.js 18.x o superior
-- npm 9.x o superior
-- PostgreSQL (o una base de datos compatible con Prisma)
+- PostgreSQL 14.x o superior
+- npm o yarn
 
 ## Instalación
 
@@ -39,38 +29,50 @@ Sistema de gestión para Reset Spa.
 2. Instalar dependencias:
    ```bash
    npm install
+   # o
+   yarn install
    ```
 
 3. Configurar variables de entorno:
-   - Copia el archivo `.env.example` a `.env`
-   - Actualiza las variables con tus propios valores
-
-4. Generar el cliente de Prisma:
-   ```bash
-   npx prisma generate
+   Crea un archivo `.env` en la raíz del proyecto con el siguiente contenido:
+   ```
+   DATABASE_URL="postgresql://usuario:contraseña@localhost:5432/reset_pro"
+   NEXTAUTH_SECRET="tu-secreto-para-nextauth"
+   NEXTAUTH_URL="http://localhost:3000"
    ```
 
-5. Ejecutar migraciones de la base de datos:
+4. Ejecutar migraciones de Prisma:
    ```bash
    npx prisma migrate dev
    ```
 
-6. Iniciar el servidor de desarrollo:
+5. Iniciar el servidor de desarrollo:
    ```bash
    npm run dev
+   # o
+   yarn dev
    ```
 
 ## Despliegue en Vercel
 
-1. Crea una cuenta en Vercel si aún no tienes una
-2. Conecta tu repositorio de GitHub
+1. Crea una cuenta en [Vercel](https://vercel.com) si aún no tienes una.
+2. Conecta tu repositorio de GitHub con Vercel.
 3. Configura las variables de entorno en Vercel:
    - `DATABASE_URL`: URL de conexión a tu base de datos PostgreSQL
-   - `JWT_SECRET`: Clave secreta para la generación de tokens JWT
-   - `NODE_ENV`: Establecer como "production"
+   - `NEXTAUTH_SECRET`: Una cadena secreta para NextAuth
+   - `NEXTAUTH_URL`: La URL de tu aplicación desplegada
 
-4. Despliega la aplicación
+4. Despliega la aplicación desde el dashboard de Vercel.
 
-La aplicación está desplegada en Vercel y utiliza una base de datos PostgreSQL alojada en Neon.tech.
+## Base de datos
+
+Para el despliegue en producción, puedes utilizar:
+- [Neon](https://neon.tech) - PostgreSQL serverless
+- [Supabase](https://supabase.com) - PostgreSQL con funcionalidades adicionales
+- [Railway](https://railway.app) - Plataforma para desplegar PostgreSQL
+
+## Licencia
+
+Este proyecto está licenciado bajo la Licencia MIT - ver el archivo LICENSE para más detalles.
 
 Fecha de actualización: 12/03/2025 

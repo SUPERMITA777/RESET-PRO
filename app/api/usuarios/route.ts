@@ -12,8 +12,15 @@ export async function GET() {
         name: true,
         email: true,
         role: true,
-        isActive: true
-      }
+        isActive: true,
+        lastLogin: true,
+        createdAt: true,
+        updatedAt: true,
+        // No incluimos la contraseña por seguridad
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
     })
 
     return NextResponse.json(users)
@@ -29,51 +36,54 @@ export async function GET() {
 // Crear usuario
 export async function POST(request: Request) {
   try {
-    const { 
-      username, 
-      name, 
-      email, 
-      password, 
-      role = 'OPERATOR' 
-    } = await request.json()
-
-    // Validar campos requeridos
-    if (!username || !name || !email || !password) {
+    const data = await request.json()
+    
+    // Validar datos requeridos
+    if (!data.username || !data.password || !data.name) {
       return NextResponse.json(
-        { error: 'Todos los campos son requeridos' }, 
+        { error: 'Nombre de usuario, contraseña y nombre son obligatorios' },
         { status: 400 }
       )
     }
-
+    
     // Verificar si el usuario ya existe
-    const existingUser = await prisma.user.findFirst({ 
-      where: { 
-        OR: [
-          { username },
-          { email }
-        ]
-      } 
+    const existingUser = await prisma.user.findUnique({
+      where: { username: data.username },
     })
-
+    
     if (existingUser) {
       return NextResponse.json(
-        { error: 'El nombre de usuario o correo ya existe' }, 
-        { status: 409 }
+        { error: 'El nombre de usuario ya está en uso' },
+        { status: 400 }
       )
     }
-
-    // Hashear contraseña
-    const hashedPassword = await bcrypt.hash(password, 10)
-
-    // Crear usuario
+    
+    // Verificar si el email ya existe (si se proporciona)
+    if (data.email) {
+      const existingEmail = await prisma.user.findUnique({
+        where: { email: data.email },
+      })
+      
+      if (existingEmail) {
+        return NextResponse.json(
+          { error: 'El email ya está en uso' },
+          { status: 400 }
+        )
+      }
+    }
+    
+    // Hashear la contraseña
+    const hashedPassword = await bcrypt.hash(data.password, 10)
+    
+    // Crear el usuario
     const newUser = await prisma.user.create({
       data: {
-        username,
-        name,
-        email,
+        username: data.username,
         password: hashedPassword,
-        role,
-        isActive: true
+        name: data.name,
+        email: data.email || null,
+        role: data.role || 'OPERATOR',
+        isActive: data.isActive !== undefined ? data.isActive : true,
       },
       select: {
         id: true,
@@ -81,10 +91,14 @@ export async function POST(request: Request) {
         name: true,
         email: true,
         role: true,
-        isActive: true
-      }
+        isActive: true,
+        lastLogin: true,
+        createdAt: true,
+        updatedAt: true,
+        // No incluimos la contraseña por seguridad
+      },
     })
-
+    
     return NextResponse.json(newUser, { status: 201 })
   } catch (error) {
     console.error('Error al crear usuario:', error)
