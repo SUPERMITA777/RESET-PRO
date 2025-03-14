@@ -68,16 +68,20 @@ async function main() {
         { name: 'Manicura y Pedicura' },
     ];
 
-    for (const category of categories) {
-        await prisma.serviceCategory.upsert({
-            where: { id: categories.indexOf(category) + 1 },
-            update: category,
-            create: {
-                ...category,
-            },
-        });
+    try {
+        for (const category of categories) {
+            await prisma.serviceCategory.upsert({
+                where: { id: categories.indexOf(category) + 1 },
+                update: category,
+                create: {
+                    ...category,
+                },
+            });
+        }
+        console.log('Categorías de servicios creadas');
+    } catch (error) {
+        console.log('Error al crear categorías de servicios, posiblemente modelo no disponible:', error.message);
     }
-    console.log('Categorías de servicios creadas');
 
     // Crear servicios
     const services = [
@@ -91,16 +95,20 @@ async function main() {
         { name: 'Pedicura Completa', description: 'Tratamiento completo para pies', price: 1800, duration: 45, categoryId: 4 },
     ];
 
-    for (const service of services) {
-        await prisma.service.upsert({
-            where: { id: services.indexOf(service) + 1 },
-            update: service,
-            create: {
-                ...service,
-            },
-        });
+    try {
+        for (const service of services) {
+            await prisma.service.upsert({
+                where: { id: services.indexOf(service) + 1 },
+                update: service,
+                create: {
+                    ...service,
+                },
+            });
+        }
+        console.log('Servicios creados');
+    } catch (error) {
+        console.log('Error al crear servicios, posiblemente modelo no disponible:', error.message);
     }
-    console.log('Servicios creados');
 
     // Crear profesionales
     const professionals = [
