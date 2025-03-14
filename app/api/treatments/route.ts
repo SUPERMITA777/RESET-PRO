@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/prisma';
 
 // Definimos la interfaz para el tipo Treatment
 interface Treatment {
@@ -36,7 +36,7 @@ export async function GET() {
   try {
     const treatments = await prisma.treatment.findMany({
       include: {
-        availability: true,
+        Availability: true,
         subTreatments: true,
       },
     });
@@ -51,7 +51,7 @@ export async function GET() {
       isSubtreatment: treatment.isSubtreatment,
       parentId: treatment.parentId,
       alwaysAvailable: treatment.alwaysAvailable,
-      availability: treatment.availability.map(avail => ({
+      availability: treatment.Availability.map(avail => ({
         id: avail.id,
         startDate: avail.startDate.toISOString().split('T')[0],
         endDate: avail.endDate.toISOString().split('T')[0],
@@ -98,19 +98,19 @@ export async function POST(request: Request) {
         isSubtreatment: body.isSubtreatment || false,
         alwaysAvailable: body.alwaysAvailable || false,
         parentId: body.parentId,
-        availability: {
+        Availability: {
           create: availability,
         },
       },
       include: {
-        availability: true,
+        Availability: true,
       },
     });
     
     // Formatear la respuesta
     const formattedTreatment = {
       ...newTreatment,
-      availability: newTreatment.availability.map(avail => ({
+      availability: newTreatment.Availability.map(avail => ({
         id: avail.id,
         startDate: avail.startDate.toISOString().split('T')[0],
         endDate: avail.endDate.toISOString().split('T')[0],
@@ -140,7 +140,7 @@ export async function PUT(request: Request) {
     // Verificar si el tratamiento existe
     const existingTreatment = await prisma.treatment.findUnique({
       where: { id: body.id },
-      include: { availability: true },
+      include: { Availability: true },
     });
     
     if (!existingTreatment) {
@@ -165,7 +165,7 @@ export async function PUT(request: Request) {
         isSubtreatment: body.isSubtreatment,
         alwaysAvailable: body.alwaysAvailable || false,
         parentId: body.parentId,
-        availability: {
+        Availability: {
           create: body.availability ? body.availability.map((avail: any) => ({
             startDate: new Date(avail.startDate),
             endDate: new Date(avail.endDate),
@@ -176,14 +176,14 @@ export async function PUT(request: Request) {
         },
       },
       include: {
-        availability: true,
+        Availability: true,
       },
     });
     
     // Formatear la respuesta
     const formattedTreatment = {
       ...updatedTreatment,
-      availability: updatedTreatment.availability.map(avail => ({
+      availability: updatedTreatment.Availability.map(avail => ({
         id: avail.id,
         startDate: avail.startDate.toISOString().split('T')[0],
         endDate: avail.endDate.toISOString().split('T')[0],

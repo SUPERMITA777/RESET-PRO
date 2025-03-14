@@ -1,7 +1,7 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = []
-  binaryTargets = ["native", "rhel-openssl-1.0.x"]
+  binaryTargets   = ["native", "rhel-openssl-1.0.x"]
 }
 
 datasource db {
@@ -10,21 +10,21 @@ datasource db {
 }
 
 model Treatment {
-  id             Int            @id @default(autoincrement())
-  name           String
-  description    String
-  duration       Int
-  price          Float
-  isSubtreatment Boolean        @default(false)
-  parentId       Int?
-  alwaysAvailable Boolean       @default(false)
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  appointments   Appointment[]
-  availability   Availability[]
-  parent         Treatment?     @relation("SubTreatments", fields: [parentId], references: [id])
-  subTreatments  Treatment[]    @relation("SubTreatments")
-  saleItems      SaleItem[]
+  id              Int            @id @default(autoincrement())
+  name            String
+  description     String
+  duration        Int
+  price           Float
+  isSubtreatment  Boolean        @default(false)
+  parentId        Int?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  alwaysAvailable Boolean        @default(false)
+  appointments    Appointment[]  @relation("TreatmentToAppointment")
+  Availability    Availability[]
+  saleItems       SaleItem[]
+  parent          Treatment?     @relation("SubTreatments", fields: [parentId], references: [id])
+  subTreatments   Treatment[]    @relation("SubTreatments")
 }
 
 model Availability {
@@ -36,18 +36,20 @@ model Availability {
   box         String
   treatmentId Int
   createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  treatment   Treatment @relation(fields: [treatmentId], references: [id], onDelete: Cascade)
+  updatedAt   DateTime
+  Treatment   Treatment @relation(fields: [treatmentId], references: [id], onDelete: Cascade)
 }
 
 model Professional {
-  id           Int                       @id @default(autoincrement())
-  name         String
-  specialty    String?
-  createdAt    DateTime                  @default(now())
-  updatedAt    DateTime                  @updatedAt
-  appointments Appointment[]
-  availability ProfessionalAvailability?
+  id                     Int                      @id @default(autoincrement())
+  name                   String
+  specialty              String
+  phone                  String?
+  availability           Availability[]
+  appointments           Appointment[]
+  professionalAvailability ProfessionalAvailability?
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime                 @updatedAt
 }
 
 model ProfessionalAvailability {
@@ -70,7 +72,7 @@ model Client {
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   medicalHistory String?
-  appointments   Appointment[]
+  appointments   Appointment[] @relation("ClientToAppointment")
   sales          Sale[]
 }
 
@@ -89,62 +91,62 @@ model Appointment {
   duration       Int?
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
-  client         Client?       @relation(fields: [clientId], references: [id])
+  client         Client?       @relation("ClientToAppointment", fields: [clientId], references: [id])
   professional   Professional? @relation(fields: [professionalId], references: [id])
-  treatment      Treatment?    @relation(fields: [treatmentId], references: [id])
+  treatment      Treatment?    @relation("TreatmentToAppointment", fields: [treatmentId], references: [id])
   sales          Sale[]
 }
 
 model Product {
-  id          Int      @id @default(autoincrement())
+  id          Int        @id @default(autoincrement())
   name        String
   description String?
   price       Float
-  stock       Int      @default(0)
+  stock       Int        @default(0)
   category    String?
   brand       String?
-  code        String?  @unique
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  code        String?    @unique
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
   saleItems   SaleItem[]
 }
 
 model PaymentMethod {
-  id          Int      @id @default(autoincrement())
-  name        String
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  payments    Payment[]
+  id        Int       @id @default(autoincrement())
+  name      String
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  payments  Payment[]
 }
 
 model Sale {
-  id            Int       @id @default(autoincrement())
-  date          DateTime  @default(now())
+  id            Int          @id @default(autoincrement())
+  date          DateTime     @default(now())
   clientId      Int?
   appointmentId Int?
   total         Float
-  status        String    // pending, completed, cancelled
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  client        Client?   @relation(fields: [clientId], references: [id])
-  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
-  items         SaleItem[]
+  status        String
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
   payments      Payment[]
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
+  client        Client?      @relation(fields: [clientId], references: [id])
+  items         SaleItem[]
 }
 
 model SaleItem {
-  id          Int      @id @default(autoincrement())
+  id          Int        @id @default(autoincrement())
   saleId      Int
   productId   Int?
   treatmentId Int?
   quantity    Int
   price       Float
   subtotal    Float
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  sale        Sale     @relation(fields: [saleId], references: [id])
-  product     Product? @relation(fields: [productId], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  product     Product?   @relation(fields: [productId], references: [id])
+  sale        Sale       @relation(fields: [saleId], references: [id])
   treatment   Treatment? @relation(fields: [treatmentId], references: [id])
 }
 
@@ -153,11 +155,11 @@ model Payment {
   saleId          Int
   paymentMethodId Int
   amount          Float
-  reference       String?       // Para números de transacción, etc.
+  reference       String?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
-  sale            Sale          @relation(fields: [saleId], references: [id])
   paymentMethod   PaymentMethod @relation(fields: [paymentMethodId], references: [id])
+  sale            Sale          @relation(fields: [saleId], references: [id])
 }
 
 model Expense {
@@ -172,22 +174,22 @@ model Expense {
   updatedAt     DateTime @updatedAt
 }
 
+model User {
+  id        Int       @id @default(autoincrement())
+  username  String    @unique
+  password  String
+  name      String
+  email     String?   @unique
+  role      UserRole  @default(OPERATOR)
+  isActive  Boolean   @default(true)
+  lastLogin DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
 enum UserRole {
   ADMIN
   MANAGER
   OPERATOR
   READONLY
-}
-
-model User {
-  id            Int       @id @default(autoincrement())
-  username      String    @unique
-  password      String
-  name          String
-  email         String?   @unique
-  role          UserRole  @default(OPERATOR)
-  isActive      Boolean   @default(true)
-  lastLogin     DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
 }

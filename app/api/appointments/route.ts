@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/prisma';
+import { parse, addMinutes } from 'date-fns';
 
 // GET /api/appointments
 export async function GET() {
@@ -35,52 +36,96 @@ export async function GET() {
 // POST /api/appointments
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
+    const data = await request.json();
     
+    // Validar datos requeridos
+    if (!data.serviceId || !data.date || !data.time || !data.clientName) {
+      return NextResponse.json(
+        { error: 'Faltan datos requeridos para la cita' },
+        { status: 400 }
+      );
+    }
+
+    // Obtener el servicio para conocer su duración
+    const service = await prisma.service.findUnique({
+      where: { id: data.serviceId }
+    });
+
+    if (!service) {
+      return NextResponse.json(
+        { error: 'Servicio no encontrado' },
+        { status: 404 }
+      );
+    }
+
+    // Calcular hora de inicio y fin
+    const startDateTime = parse(`${data.date} ${data.time}`, 'yyyy-MM-dd HH:mm', new Date());
+    const endDateTime = addMinutes(startDateTime, service.duration);
+
+    // Verificar si el horario está disponible
+    const existingAppointment = await prisma.appointment.findFirst({
+      where: {
+        date: new Date(data.date),
+        OR: [
+          {
+            AND: [
+              { startTime: { lte: startDateTime } },
+              { endTime: { gt: startDateTime } }
+            ]
+          },
+          {
+            AND: [
+              { startTime: { lt: endDateTime } },
+              { endTime: { gte: endDateTime } }
+            ]
+          },
+          {
+            AND: [
+              { startTime: { gte: startDateTime } },
+              { endTime: { lte: endDateTime } }
+            ]
+          }
+        ],
+        status: {
+          in: ['CONFIRMADO', 'PENDIENTE']
+        }
+      }
+    });
+
+    if (existingAppointment) {
+      return NextResponse.json(
+        { error: 'El horario seleccionado ya no está disponible' },
+        { status: 409 }
+      );
+    }
+
     // Crear la cita
-    const newAppointment = await prisma.appointment.create({
+    const appointment = await prisma.appointment.create({
       data: {
-        date: new Date(body.date),
-        time: body.time,
-        status: body.status || 'reserved',
-        professionalId: body.professionalId,
-        treatmentId: body.treatmentId,
-        clientId: body.clientId,
-        box: body.box,
-        deposit: body.deposit || 0,
-        price: body.price,
-        notes: body.notes,
-        duration: body.duration,
-      },
+        service: {
+          connect: { id: data.serviceId }
+        },
+        date: new Date(data.date),
+        startTime: startDateTime,
+        endTime: endDateTime,
+        status: 'PENDIENTE',
+        clientName: data.clientName,
+        clientEmail: data.clientEmail || null,
+        notes: 'Cita creada desde el portal de clientes'
+      }
     });
-    
-    // Obtener la cita con sus relaciones
-    const appointmentWithRelations = await prisma.appointment.findUnique({
-      where: { id: newAppointment.id },
-      include: {
-        professional: true,
-        treatment: true,
-        client: true,
-      },
-    });
-    
-    // Formatear la fecha y mapear las relaciones para la respuesta
-    const formattedAppointment = {
-      ...appointmentWithRelations,
-      date: appointmentWithRelations?.date.toISOString().split('T')[0],
-      professionalName: appointmentWithRelations?.professional?.name || null,
-      treatmentName: appointmentWithRelations?.treatment?.name || null,
-      clientName: appointmentWithRelations?.client?.name || null,
-      clientPhone: appointmentWithRelations?.client?.phone || null
-    };
-    
-    console.log("Nueva cita:", JSON.stringify(formattedAppointment, null, 2));
-    
-    return NextResponse.json(formattedAppointment, { status: 201 });
-  } catch (error) {
-    console.error('Error al crear appointment:', error);
+
     return NextResponse.json(
-      { error: 'Error al crear appointment' },
+      { 
+        message: 'Cita creada exitosamente', 
+        appointmentId: appointment.id 
+      }, 
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error('Error al crear cita:', error);
+    return NextResponse.json(
+      { error: 'Error al crear la cita' },
       { status: 500 }
     );
   }
@@ -105,7 +150,6 @@ export async function PUT(request: Request) {
       where: { id: body.id },
       data: {
         date: body.date ? new Date(body.date) : undefined,
-        time: body.time,
         status: body.status,
         professionalId: body.professionalId,
         treatmentId: body.treatmentId,

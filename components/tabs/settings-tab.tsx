@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CreditCard, Plus, Trash2, Pencil, Settings, Database, Users, Bell } from "lucide-react";
+import { CreditCard, Plus, Trash2, Pencil, Settings, Database, Users, Bell, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +12,7 @@ import { toast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DatabaseBackup from './database-backup';
 import UserManagement from '../user-management';
+import { Box, Typography, Grid, Divider, CircularProgress, Alert } from '@mui/material';
 
 interface PaymentMethod {
     id: number;
@@ -31,10 +32,15 @@ export default function SettingsTab() {
     const [paymentMethodSurcharge, setPaymentMethodSurcharge] = useState("0");
     const [isEditing, setIsEditing] = useState(false);
     const [activeTab, setActiveTab] = useState('general');
-    const [logo, setLogo] = useState<string | null>(null);
+    const [logo, setLogo] = useState<File | null>(null);
+    const [logoUrl, setLogoUrl] = useState<string | null>(null);
+    const [isLogoChanged, setIsLogoChanged] = useState(false);
+    const [isLogoUploading, setIsLogoUploading] = useState(false);
+    const [logoError, setLogoError] = useState<string | null>(null);
 
     useEffect(() => {
         fetchPaymentMethods();
+        fetchLogo();
     }, []);
 
     const fetchPaymentMethods = async () => {
@@ -49,17 +55,64 @@ export default function SettingsTab() {
         }
     };
 
+    const fetchLogo = async () => {
+        try {
+            const response = await fetch('/api/settings/logo');
+            if (response.ok) {
+                const data = await response.json();
+                if (data.logoUrl) {
+                    setLogoUrl(data.logoUrl);
+                }
+            }
+        } catch (error) {
+            console.error('Error al cargar el logo:', error);
+        }
+    };
+
     const handleLogoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const result = reader.result;
-                if (typeof result === 'string') {
-                    setLogo(result);
-                }
-            };
-            reader.readAsDataURL(file);
+            if (!file.type.startsWith('image/')) {
+                setLogoError('El archivo debe ser una imagen (JPG, PNG, etc.)');
+                return;
+            }
+            
+            if (file.size > 2 * 1024 * 1024) {
+                setLogoError('La imagen no debe superar los 2MB');
+                return;
+            }
+            
+            setLogo(file);
+            setLogoUrl(URL.createObjectURL(file));
+            setIsLogoChanged(true);
+            setLogoError(null);
+        }
+    };
+
+    const handleSaveLogo = async () => {
+        if (!logo) return;
+        
+        setIsLogoUploading(true);
+        try {
+            const formData = new FormData();
+            formData.append('logo', logo);
+            
+            const response = await fetch('/api/settings/logo', {
+                method: 'POST',
+                body: formData,
+            });
+            
+            if (!response.ok) {
+                throw new Error('Error al guardar el logo');
+            }
+            
+            toast.success('Logo guardado correctamente');
+            setIsLogoChanged(false);
+        } catch (error) {
+            console.error('Error al guardar el logo:', error);
+            toast.error('Error al guardar el logo');
+        } finally {
+            setIsLogoUploading(false);
         }
     };
 
@@ -118,7 +171,7 @@ export default function SettingsTab() {
                             <div className="space-y-2">
                                 <Label htmlFor="logo">Logo</Label>
                                 <Input id="logo" type="file" accept="image/*" onChange={handleLogoChange} />
-                                {logo && <img src={logo} alt="Logo" className="mt-2 h-20" />}
+                                {logoUrl && <img src={logoUrl} alt="Logo" className="mt-2 h-20" />}
                             </div>
                         </CardContent>
                     </Card>

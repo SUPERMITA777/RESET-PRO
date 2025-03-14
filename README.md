@@ -1,3 +1,94 @@
+# Frontend para Reserva de Turnos
+
+Este proyecto es un frontend para un sistema de reserva de turnos, inspirado en AgendaPro. Permite a los clientes ver los servicios disponibles, sus precios y agendar turnos.
+
+## Características
+
+- Listado de servicios y sub-tratamientos con precios
+- Reserva de turnos con selección de fecha y hora
+- Formulario de contacto para los clientes
+- Visualización del logo del negocio
+- Diseño responsive y moderno
+
+## Tecnologías utilizadas
+
+- Next.js
+- React
+- Material UI
+- Prisma ORM
+- PostgreSQL
+
+## Requisitos previos
+
+- Node.js (versión 18 o superior)
+- PostgreSQL
+
+## Instalación
+
+1. Clona este repositorio:
+   ```bash
+   git clone https://github.com/tu-usuario/reset-front.git
+   cd reset-front
+   ```
+
+2. Instala las dependencias:
+   ```bash
+   npm install
+   ```
+
+3. Configura las variables de entorno:
+   - Crea un archivo `.env.local` en la raíz del proyecto con las siguientes variables:
+     ```
+     DATABASE_URL="postgresql://usuario:contraseña@localhost:5432/nombre_db?schema=public"
+     NEXTAUTH_SECRET="tu-clave-secreta"
+     NEXTAUTH_URL="http://localhost:3000"
+     ```
+
+4. Genera el cliente de Prisma:
+   ```bash
+   npx prisma generate
+   ```
+
+5. Ejecuta las migraciones de la base de datos:
+   ```bash
+   npx prisma migrate dev
+   ```
+
+6. Inicia el servidor de desarrollo:
+   ```bash
+   npm run dev
+   ```
+
+7. Abre [http://localhost:3000](http://localhost:3000) en tu navegador para ver la aplicación.
+
+## Estructura del proyecto
+
+- `src/app`: Páginas y rutas de la aplicación
+- `src/components`: Componentes reutilizables
+- `src/lib`: Utilidades y configuraciones
+- `prisma`: Esquema y migraciones de la base de datos
+
+## Endpoints de API
+
+- `GET /api/services`: Obtiene la lista de servicios y sub-tratamientos
+- `GET /api/availability`: Verifica la disponibilidad de horarios para una fecha y servicio específicos
+- `POST /api/appointments`: Crea una nueva cita
+- `GET /api/settings/logo`: Obtiene la URL del logo del negocio
+- `POST /api/settings/logo`: Actualiza el logo del negocio
+
+## Contribuir
+
+1. Haz un fork del repositorio
+2. Crea una rama para tu feature (`git checkout -b feature/nueva-funcionalidad`)
+3. Haz commit de tus cambios (`git commit -m 'Agrega nueva funcionalidad'`)
+4. Haz push a la rama (`git push origin feature/nueva-funcionalidad`)
+5. Abre un Pull Request
+
+## Licencia
+
+Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
+
+Fecha de actualización: 12/03/2025 
 # RESET-PRO
 
 Sistema de gestión para clínicas y centros de estética, desarrollado con Next.js, Prisma y PostgreSQL.

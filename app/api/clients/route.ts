@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/prisma';
 
 // GET /api/clients
 export async function GET() {
@@ -39,7 +39,6 @@ export async function POST(request: Request) {
         name: body.name,
         email: body.email || null,
         phone: body.phone || null,
-        medicalHistory: body.medicalHistory || null,
       },
     });
     
@@ -76,7 +75,6 @@ export async function PUT(request: Request) {
         name: body.name,
         email: body.email || null,
         phone: body.phone || null,
-        medicalHistory: body.medicalHistory || null,
       },
     });
     

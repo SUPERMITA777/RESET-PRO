@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import React from "react"
 import type { FormEvent, ChangeEvent } from "react"
@@ -47,15 +47,15 @@ const initialAppointments = [
     time: "10:00",
     status: "reserved",
     professionalId: 1,
-    professionalName: "María López",
+    professionalName: "MarÃ­a LÃ³pez",
     treatmentId: 1,
     treatmentName: "Limpieza Facial",
     clientId: 1,
-    clientName: "Ana García",
+    clientName: "Ana GarcÃ­a",
     box: "Box 1",
     deposit: 2000,
     price: 5000,
-    notes: "Primera sesión",
+    notes: "Primera sesiÃ³n",
   },
   {
     id: 2,
@@ -63,11 +63,11 @@ const initialAppointments = [
     time: "11:30",
     status: "completed",
     professionalId: 2,
-    professionalName: "Carlos Rodríguez",
+    professionalName: "Carlos RodrÃ­guez",
     treatmentId: 3,
     treatmentName: "Masaje Relajante",
     clientId: 2,
-    clientName: "Juan Pérez",
+    clientName: "Juan PÃ©rez",
     box: "Box 2",
     deposit: 3000,
     price: 6000,
@@ -79,7 +79,7 @@ const initialAppointments = [
     time: "09:00",
     status: "available",
     professionalId: 3,
-    professionalName: "Laura Fernández",
+    professionalName: "Laura FernÃ¡ndez",
     treatmentId: null,
     treatmentName: null,
     clientId: null,
@@ -95,11 +95,11 @@ const initialAppointments = [
     time: "15:00",
     status: "cancelled",
     professionalId: 1,
-    professionalName: "María López",
+    professionalName: "MarÃ­a LÃ³pez",
     treatmentId: 2,
     treatmentName: "Limpieza Facial Profunda",
     clientId: 3,
-    clientName: "Sofía Martínez",
+    clientName: "SofÃ­a MartÃ­nez",
     box: "Box 1",
     deposit: 1000,
     price: 7500,
@@ -109,16 +109,16 @@ const initialAppointments = [
 
 // Mock data for dropdowns
 const professionals = [
-  { id: 1, name: "María López" },
-  { id: 2, name: "Carlos Rodríguez" },
-  { id: 3, name: "Laura Fernández" },
+  { id: 1, name: "MarÃ­a LÃ³pez" },
+  { id: 2, name: "Carlos RodrÃ­guez" },
+  { id: 3, name: "Laura FernÃ¡ndez" },
 ]
 
-// Definir clients como un array estático inicialmente
+// Definir clients como un array estÃ¡tico inicialmente
 const clientsData = [
-  { id: 1, name: "Ana García" },
-  { id: 2, name: "Juan Pérez" },
-  { id: 3, name: "Sofía Martínez" },
+  { id: 1, name: "Ana GarcÃ­a" },
+  { id: 2, name: "Juan PÃ©rez" },
+  { id: 3, name: "SofÃ­a MartÃ­nez" },
 ]
 
 const boxes = ["Box 1", "Box 2", "Box 3", "Box 4", "Box 5"]
@@ -145,6 +145,8 @@ export interface Appointment {
   price: number;
   notes: string;
   duration?: number;
+  depositPaid?: boolean;
+  depositPaymentMethodId?: number;
 }
 
 // Definir la interfaz para los tratamientos
@@ -167,7 +169,7 @@ interface Treatment {
   alwaysAvailable?: boolean;
 }
 
-// Añadir después de las importaciones
+// AÃ±adir despuÃ©s de las importaciones
 interface ProfessionalAvailability {
   id?: number
   startDate: string
@@ -185,7 +187,7 @@ interface Professional {
   updatedAt: string
 }
 
-// Agregar después de las interfaces existentes
+// Agregar despuÃ©s de las interfaces existentes
 interface PaymentMethod {
   id: number
   name: string
@@ -261,18 +263,19 @@ export default function AgendaTab() {
     newClientName: "",
     newClientPhone: "",
     duration: "",
+    depositPaymentMethodId: "",
   })
 
   const [availableProfessionals, setAvailableProfessionals] = useState<Professional[]>([])
   const [availableTreatments, setAvailableTreatments] = useState<Treatment[]>([])
   const [subTreatments, setSubTreatments] = useState<Treatment[]>([])
-  // Agregar el estado de clients aquí dentro del componente
+  // Agregar el estado de clients aquÃ­ dentro del componente
   const [clients, setClients] = useState<{id: number, name: string, phone?: string, email?: string}[]>([])
 
-  // Añadir el estado para los profesionales
+  // AÃ±adir el estado para los profesionales
   const [professionals, setProfessionals] = useState<Professional[]>([])
 
-  // Agregar dentro del componente AgendaTab, después de los estados existentes
+  // Agregar dentro del componente AgendaTab, despuÃ©s de los estados existentes
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([])
@@ -287,8 +290,6 @@ export default function AgendaTab() {
   const searchParams = useSearchParams()
 
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
-
-  const [view, setView] = useState<'daily' | 'weekly' | 'monthly' | 'agenda2'>('daily');
 
   // Agregar un nuevo estado para el turno especial
   const [specialAppointment, setSpecialAppointment] = useState<SpecialAppointmentForm>(
@@ -386,7 +387,7 @@ export default function AgendaTab() {
   }, []);
 
   const updateAvailability = useCallback(() => {
-    // Asegurarse de que la fecha seleccionada esté en formato YYYY-MM-DD
+    // Asegurarse de que la fecha seleccionada estÃ© en formato YYYY-MM-DD
     const normalizedSelectedDate = selectedDate.split('T')[0];
     const time = formData.time;
     const box = formData.box;
@@ -411,12 +412,12 @@ export default function AgendaTab() {
       return isAfterStartDate && isBeforeEndDate && isAfterStartTime && isBeforeEndTime;
     });
 
-    // Obtener tratamientos disponibles según disponibilidad o alwaysAvailable
+    // Obtener tratamientos disponibles segÃºn disponibilidad o alwaysAvailable
     const availableMainTreats = treatments.filter((treat) => {
       // Filtrar solo tratamientos principales (no subtratamientos)
       if (treat.isSubtreatment) return false;
       
-      // Si el tratamiento está marcado como siempre disponible, incluirlo
+      // Si el tratamiento estÃ¡ marcado como siempre disponible, incluirlo
       if (treat.alwaysAvailable) return true;
       
       // Verificar disponibilidad normal
@@ -437,7 +438,7 @@ export default function AgendaTab() {
       // Mostrar solo subtratamientos
       if (!treat.isSubtreatment) return false;
       
-      // Verificar si el tratamiento padre está disponible
+      // Verificar si el tratamiento padre estÃ¡ disponible
       const parentTreatment = availableMainTreats.find(t => t.id === treat.parentId);
       return !!parentTreatment;
     });
@@ -459,7 +460,7 @@ export default function AgendaTab() {
     if (name === "treatmentId" && value) {
       const selectedTreatment = treatments.find((t) => t.id.toString() === value)
       if (selectedTreatment) {
-        // Actualizar precio y duración automáticamente
+        // Actualizar precio y duraciÃ³n automÃ¡ticamente
         setFormData({
           ...formData,
           [name]: value,
@@ -470,7 +471,7 @@ export default function AgendaTab() {
       }
     }
     
-    // Convertir "none" a cadena vacía para mantener la lógica existente
+    // Convertir "none" a cadena vacÃ­a para mantener la lÃ³gica existente
     const finalValue = value === "none" ? "" : value;
     setFormData({ ...formData, [name]: finalValue });
   }
@@ -490,18 +491,19 @@ export default function AgendaTab() {
       newClientName: "",
       newClientPhone: "",
       duration: "0",
+      depositPaymentMethodId: "",
     })
     setSubTreatments([])
   }
 
   const handleOpenDialog = (appointment: Appointment | null = null, time?: string, box?: string) => {
-    // Si se está creando un nuevo turno, verificar que la fecha no sea pasada
+    // Si se estÃ¡ creando un nuevo turno, verificar que la fecha no sea pasada
     if (!appointment && isDateBeforeToday(selectedDate)) {
       alert("No se pueden crear turnos en fechas pasadas. Por favor, seleccione una fecha futura.");
       return;
     }
     
-    // Si se está creando un nuevo turno en la fecha actual, verificar que la hora no sea pasada
+    // Si se estÃ¡ creando un nuevo turno en la fecha actual, verificar que la hora no sea pasada
     if (!appointment && 
         compareDatesOnly(selectedDate, getCurrentDateArgentina()) === 0 && 
         time && 
@@ -526,6 +528,7 @@ export default function AgendaTab() {
         newClientName: "",
         newClientPhone: "",
         duration: appointment.duration?.toString() || "",
+        depositPaymentMethodId: "",
       })
     } else {
       setCurrentAppointment(null)
@@ -543,6 +546,7 @@ export default function AgendaTab() {
         newClientName: "",
         newClientPhone: "",
         duration: "0",
+        depositPaymentMethodId: "",
       })
     }
     setIsDialogOpen(true)
@@ -564,21 +568,21 @@ export default function AgendaTab() {
       return;
     }
 
-    // Verificar si el tratamiento está disponible
+    // Verificar si el tratamiento estÃ¡ disponible
     const isTreatmentAvailable = availableTreatments.some((t) => t.id.toString() === formData.treatmentId);
 
     if (!isTreatmentAvailable) {
-      alert("El tratamiento seleccionado no está disponible en este horario.");
+      alert("El tratamiento seleccionado no estÃ¡ disponible en este horario.");
       return;
     }
 
-    // Validar que se haya ingresado un teléfono si se está creando un nuevo cliente
+    // Validar que se haya ingresado un telÃ©fono si se estÃ¡ creando un nuevo cliente
     if (formData.newClientName && !formData.newClientPhone) {
-      alert("Por favor, ingrese un teléfono para el nuevo cliente.");
+      alert("Por favor, ingrese un telÃ©fono para el nuevo cliente.");
       return;
     }
 
-    // Función para continuar con la creación de la cita después de manejar el cliente
+    // FunciÃ³n para continuar con la creaciÃ³n de la cita despuÃ©s de manejar el cliente
     const continueWithAppointment = async (clientId: string, clientName: string) => {
       const selectedProfessional = formData.professionalId && formData.professionalId !== "none"
         ? professionals.find((p) => p.id.toString() === formData.professionalId) 
@@ -587,10 +591,16 @@ export default function AgendaTab() {
         ? treatments.find((t) => t.id.toString() === formData.treatmentId)
         : null;
 
-      // SOLUCIÓN JAVASCRIPT PURO: Usar fechas ISO sin manipulación de zona horaria
-      // Asegurarse de que la fecha esté en formato YYYY-MM-DD sin componente de tiempo
+      // SOLUCIÃ“N JAVASCRIPT PURO: Usar fechas ISO sin manipulaciÃ³n de zona horaria
+      // Asegurarse de que la fecha estÃ© en formato YYYY-MM-DD sin componente de tiempo
       const dateParts = formData.date.split('T')[0].split('-');
       const normalizedDate = `${dateParts[0]}-${dateParts[1]}-${dateParts[2]}`;
+      
+      // Verificar que los campos requeridos estÃ©n presentes
+      if (!formData.box || !formData.time || !formData.status) {
+        alert("Por favor, complete todos los campos requeridos (box, hora y estado).");
+        return;
+      }
       
       // Crear un nuevo appointment con la fecha normalizada
       const appointmentData = {
@@ -601,8 +611,11 @@ export default function AgendaTab() {
         professionalId: formData.professionalId && formData.professionalId !== "none" 
           ? Number.parseInt(formData.professionalId) 
           : null,
+        professionalName: selectedProfessional?.name || null,
         treatmentId: formData.treatmentId ? Number.parseInt(formData.treatmentId) : null,
+        treatmentName: selectedTreatment?.name || null,
         clientId: clientId ? Number.parseInt(clientId) : null,
+        clientName: clientName || null,
         box: formData.box,
         deposit: Number.parseInt(formData.deposit) || 0,
         price: Number.parseInt(formData.price) || 0,
@@ -641,7 +654,7 @@ export default function AgendaTab() {
         }
 
         const savedAppointment = await response.json();
-        console.log(`Cita ${currentAppointment ? 'actualizada' : 'creada'} con éxito:`, savedAppointment);
+        console.log(`Cita ${currentAppointment ? 'actualizada' : 'creada'} con Ã©xito:`, savedAppointment);
 
         // Actualizar la lista de appointments en el estado local
         if (currentAppointment) {
@@ -655,7 +668,7 @@ export default function AgendaTab() {
         setIsDialogOpen(false);
         resetForm();
         
-        // Recargar los appointments para asegurar sincronización con la base de datos
+        // Recargar los appointments para asegurar sincronizaciÃ³n con la base de datos
         fetchAppointments();
         
       } catch (error: any) {
@@ -664,7 +677,7 @@ export default function AgendaTab() {
       }
     };
 
-    // Manejar la creación de un nuevo cliente si es necesario
+    // Manejar la creaciÃ³n de un nuevo cliente si es necesario
     if (formData.newClientName && !formData.clientId) {
       // Crear un nuevo cliente en la base de datos
       const createClient = async () => {
@@ -698,10 +711,10 @@ export default function AgendaTab() {
           // Actualizar la lista de clientes
           setClients(prevClients => [...prevClients, newClient]);
           
-          // Continuar con la creación de la cita
+          // Continuar con la creaciÃ³n de la cita
           continueWithAppointment(newClient.id.toString(), newClient.name);
           
-          // Recargar la lista de clientes para asegurar sincronización con la base de datos
+          // Recargar la lista de clientes para asegurar sincronizaciÃ³n con la base de datos
           setTimeout(() => {
             fetchClients();
           }, 500);
@@ -733,7 +746,7 @@ export default function AgendaTab() {
   }
 
   const getAppointmentByTimeAndBox = (time: string, box: string) => {
-    // SOLUCIÓN JAVASCRIPT PURO: Comparar fechas como strings sin manipulación
+    // SOLUCIÃ“N JAVASCRIPT PURO: Comparar fechas como strings sin manipulaciÃ³n
     // Esto evita cualquier problema de zona horaria
     const normalizedSelectedDate = selectedDate.split('T')[0];
     
@@ -774,9 +787,9 @@ export default function AgendaTab() {
 
     // Si hay una cita, devolver un div con el color correspondiente
     if (appointment) {
-        const duration = appointment.duration || 30; // Duración en minutos
-        const endTime = new Date(new Date(`${selectedDate}T${time}`)).getTime() + duration * 60000; // Calcular el tiempo de finalización
-        const endTimeStr = formatTimeArgentina(new Date(endTime)); // Formatear el tiempo de finalización
+        const duration = appointment.duration || 30; // DuraciÃ³n en minutos
+        const endTime = new Date(new Date(`${selectedDate}T${time}`)).getTime() + duration * 60000; // Calcular el tiempo de finalizaciÃ³n
+        const endTimeStr = formatTimeArgentina(new Date(endTime)); // Formatear el tiempo de finalizaciÃ³n
 
         return (
             <div
@@ -806,7 +819,7 @@ export default function AgendaTab() {
         );
     }
 
-    // Si no hay citas ni tratamientos disponibles, devolver un div vacío
+    // Si no hay citas ni tratamientos disponibles, devolver un div vacÃ­o
     return (
         <div
             className={getCellClass(time, box)} // Aplicar la clase de color
@@ -841,6 +854,14 @@ export default function AgendaTab() {
         return "";
     }
   }
+
+  const getEndTime = (startTime: string, durationMinutes: number) => {
+    const [hours, minutes] = startTime.split(':').map(Number);
+    const totalMinutes = hours * 60 + minutes + durationMinutes;
+    const endHours = Math.floor(totalMinutes / 60);
+    const endMinutes = totalMinutes % 60;
+    return `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}`;
+  };
 
   const getAppointmentContent = (appointment: Appointment | undefined) => {
     if (!appointment || appointment.status === "available") {
@@ -886,15 +907,15 @@ export default function AgendaTab() {
   }
 
   const changeDate = (direction: 'prev' | 'next') => {
-    // SOLUCIÓN JAVASCRIPT PURO: Manipular fechas sin crear objetos Date
+    // SOLUCIÃ“N JAVASCRIPT PURO: Manipular fechas sin crear objetos Date
     // Esto evita cualquier problema de zona horaria
     const dateParts = selectedDate.split('T')[0].split('-').map(Number);
     const year = dateParts[0];
     const month = dateParts[1];
     const day = dateParts[2];
     
-    // Crear una nueva fecha usando Date solo para calcular el día anterior/siguiente
-    // pero sin depender de la representación de la fecha
+    // Crear una nueva fecha usando Date solo para calcular el dÃ­a anterior/siguiente
+    // pero sin depender de la representaciÃ³n de la fecha
     const date = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
     
     if (direction === 'prev') {
@@ -927,14 +948,98 @@ export default function AgendaTab() {
   const handleDeleteAppointment = () => {
     if (!currentAppointment) return;
     
-    if (confirm("¿Está seguro que desea eliminar este turno?")) {
+    if (confirm("Â¿EstÃ¡ seguro que desea eliminar este turno?")) {
       setAppointments(appointments.filter(a => a.id !== currentAppointment.id));
       setIsDialogOpen(false);
       resetForm();
     }
   };
 
-  // Agregar después de los useEffect existentes
+  // FunciÃ³n para registrar la seÃ±a como un ingreso
+  const handleSaveDeposit = async () => {
+    if (!currentAppointment || !formData.depositPaymentMethodId) return;
+    
+    try {
+      // Actualizar la cita con la informaciÃ³n de la seÃ±a
+      const updatedAppointment = {
+        ...currentAppointment,
+        deposit: Number(formData.deposit),
+        depositPaid: true,
+        depositPaymentMethodId: Number(formData.depositPaymentMethodId)
+      };
+      
+      // Guardar la cita actualizada
+      const response = await fetch("/api/appointments", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedAppointment),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Error al actualizar la cita: ${errorData.error || 'Error desconocido'}`);
+      }
+      
+      // Registrar la seÃ±a como un ingreso en la tabla de ventas
+      const selectedPaymentMethod = paymentMethods.find(m => m.id.toString() === formData.depositPaymentMethodId);
+      
+      const saleData = {
+        clientId: currentAppointment.clientId,
+        appointmentId: currentAppointment.id,
+        total: Number(formData.deposit),
+        items: [{
+          treatmentId: currentAppointment.treatmentId,
+          quantity: 1,
+          price: Number(formData.deposit),
+          subtotal: Number(formData.deposit),
+          isDeposit: true
+        }],
+        payments: [{
+          paymentMethodId: Number(formData.depositPaymentMethodId),
+          amount: Number(formData.deposit),
+          reference: "SeÃ±a para turno"
+        }],
+        status: "completed",
+        isDeposit: true
+      };
+      
+      const saleResponse = await fetch("/api/sales", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(saleData),
+      });
+      
+      if (!saleResponse.ok) {
+        const errorData = await saleResponse.json();
+        throw new Error(`Error al registrar la seÃ±a como ingreso: ${errorData.error || 'Error desconocido'}`);
+      }
+      
+      // Actualizar la lista de citas
+      const savedAppointment = await response.json();
+      setAppointments(appointments.map(a => a.id === currentAppointment.id ? savedAppointment : a));
+      setCurrentAppointment(savedAppointment);
+      
+      // Mostrar mensaje de Ã©xito
+      toast({
+        title: "SeÃ±a registrada",
+        description: `Se ha registrado la seÃ±a de $${formData.deposit} pagada con ${selectedPaymentMethod?.name || 'mÃ©todo de pago seleccionado'}.`,
+      });
+      
+    } catch (error: any) {
+      console.error("Error al registrar la seÃ±a:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Ha ocurrido un error al registrar la seÃ±a.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Agregar despuÃ©s de los useEffect existentes
   useEffect(() => {
     const fetchPaymentMethods = async () => {
       try {
@@ -982,6 +1087,34 @@ export default function AgendaTab() {
         type: 'treatment'
       }])
     }
+    
+    // Si hay una seÃ±a, agregarla automÃ¡ticamente como un pago ya realizado
+    if (appointment.deposit && appointment.deposit > 0) {
+      // Si la seÃ±a ya fue pagada, usar el mÃ©todo de pago registrado
+      if (appointment.depositPaid && appointment.depositPaymentMethodId) {
+        const depositPaymentMethod = paymentMethods.find(m => m.id === appointment.depositPaymentMethodId);
+        
+        if (depositPaymentMethod) {
+          setPayments([{
+            paymentMethodId: depositPaymentMethod.id,
+            amount: appointment.deposit,
+            reference: "SeÃ±a pagada previamente"
+          }]);
+        }
+      } else {
+        // Si no fue pagada, usar efectivo como mÃ©todo predeterminado
+        const cashPaymentMethod = paymentMethods.find(m => m.name.toLowerCase() === "efectivo") || paymentMethods[0];
+        
+        if (cashPaymentMethod) {
+          setPayments([{
+            paymentMethodId: cashPaymentMethod.id,
+            amount: appointment.deposit,
+            reference: "SeÃ±a pagada previamente"
+          }]);
+        }
+      }
+    }
+    
     setIsCartOpen(true)
   }
 
@@ -1072,6 +1205,10 @@ export default function AgendaTab() {
     if (!currentAppointment?.clientId) return;
 
     try {
+        // Calcular el saldo (total del carrito menos la seÃ±a)
+        const depositAmount = currentAppointment.deposit || 0;
+        const cartTotal = getCartTotal();
+        
         // Crear la venta
         const response = await fetch("/api/sales", {
             method: "POST",
@@ -1079,7 +1216,7 @@ export default function AgendaTab() {
             body: JSON.stringify({
                 clientId: currentAppointment.clientId,
                 appointmentId: currentAppointment.id,
-                total: getCartTotal(),
+                total: cartTotal,
                 items: cartItems.map(item => ({
                     productId: item.productId,
                     treatmentId: item.treatmentId,
@@ -1092,7 +1229,9 @@ export default function AgendaTab() {
                     amount: payment.amount,
                     reference: payment.reference
                 })),
-                deposit: parseFloat(formData.deposit) // Guardar el registro de SEÑA
+                status: "completed",
+                // Indicar si la seÃ±a ya fue registrada previamente
+                depositAlreadyPaid: currentAppointment.depositPaid || false
             })
         });
 
@@ -1107,10 +1246,15 @@ export default function AgendaTab() {
                     time: currentAppointment.time,
                     status: "completed",
                     professionalId: currentAppointment.professionalId,
+                    professionalName: currentAppointment.professionalName,
                     treatmentId: currentAppointment.treatmentId,
+                    treatmentName: currentAppointment.treatmentName,
                     clientId: currentAppointment.clientId,
+                    clientName: currentAppointment.clientName,
                     box: currentAppointment.box,
                     deposit: currentAppointment.deposit,
+                    depositPaid: currentAppointment.depositPaid,
+                    depositPaymentMethodId: currentAppointment.depositPaymentMethodId,
                     price: currentAppointment.price,
                     notes: currentAppointment.notes,
                     duration: currentAppointment.duration
@@ -1142,10 +1286,10 @@ export default function AgendaTab() {
     }
   };
 
-  // Agregar después de los useEffect existentes
+  // Agregar despuÃ©s de los useEffect existentes
   useEffect(() => {
-    const appointmentId = searchParams.get("appointmentId")
-    const openCart = searchParams.get("openCart")
+    const appointmentId = searchParams?.get("appointmentId")
+    const openCart = searchParams?.get("openCart")
 
     if (appointmentId && openCart === "true") {
       const appointment = appointments.find(a => a.id === parseInt(appointmentId))
@@ -1164,141 +1308,6 @@ export default function AgendaTab() {
 
   const currentHour = currentDateTime.getHours();
   const currentMinute = currentDateTime.getMinutes();
-
-  // Agregar después de las funciones existentes
-  const getWeekDates = () => {
-    const date = new Date(selectedDate);
-    const day = date.getDay();
-    const diff = date.getDate() - day;
-    const weekDates = [];
-    
-    for (let i = 0; i < 7; i++) {
-      const newDate = new Date(date.setDate(diff + i));
-      weekDates.push(newDate.toISOString().split('T')[0]);
-    }
-    
-    return weekDates;
-  };
-
-  const getMonthDates = () => {
-    const date = new Date(selectedDate);
-    const month = date.getMonth();
-    const year = date.getFullYear();
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const monthDates = [];
-    
-    // Retroceder hasta el domingo anterior al primer día
-    const startDate = new Date(firstDay);
-    startDate.setDate(firstDay.getDate() - firstDay.getDay());
-    
-    // Avanzar hasta el sábado posterior al último día
-    const endDate = new Date(lastDay);
-    endDate.setDate(lastDay.getDate() + (6 - lastDay.getDay()));
-    
-    let currentDate = startDate;
-    while (currentDate <= endDate) {
-      monthDates.push(currentDate.toISOString().split('T')[0]);
-      currentDate = new Date(currentDate.setDate(currentDate.getDate() + 1));
-    }
-    
-    return monthDates;
-  };
-
-  const WeeklyView = () => {
-    const weekDates = getWeekDates();
-    
-    return (
-        <Table>
-            <TableHeader>
-                <TableRow>
-                    <TableHead>Hora</TableHead>
-                    {weekDates.map((date) => (
-                        <TableHead key={date} className="text-center">
-                            {formatDate(date)}
-                        </TableHead>
-                    ))}
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {timeSlots.map((time) => (
-                    <TableRow key={time}>
-                        <TableCell>{time}</TableCell>
-                        {weekDates.map((date) => (
-                            <TableCell key={`${date}-${time}`} className="p-0 h-10">
-                                <div className="grid grid-cols-5 gap-0">
-                                    {boxes.map((box) => (
-                                        <div key={`${date}-${time}-${box}`} className="border-r last:border-r-0">
-                                            {getCellContent(time, box)} {/* Solo colores, sin texto */}
-                                        </div>
-                                    ))}
-                                </div>
-                            </TableCell>
-                        ))}
-                    </TableRow>
-                ))}
-            </TableBody>
-        </Table>
-    );
-  };
-
-  const MonthlyView = () => {
-    const monthDates = getMonthDates();
-    const daysOfWeek = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-    const weeks = [];
-    
-    for (let i = 0; i < monthDates.length; i += 7) {
-      weeks.push(monthDates.slice(i, i + 7));
-    }
-    
-    return (
-      <Table>
-        <TableHeader>
-          <TableRow>
-            {daysOfWeek.map((day) => (
-              <TableHead key={day} className="text-center">{day}</TableHead>
-            ))}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {weeks.map((week, weekIndex) => (
-            <TableRow key={weekIndex} className="h-32">
-              {week.map((date) => {
-                const dayAppointments = appointments.filter(
-                  app => app.date === date
-                );
-                const isCurrentMonth = new Date(date).getMonth() === new Date(selectedDate).getMonth();
-                
-                return (
-                  <TableCell 
-                    key={date} 
-                    className={`align-top p-1 ${isCurrentMonth ? '' : 'bg-gray-50'}`}
-                  >
-                    <div className="font-bold mb-1">
-                      {new Date(date).getDate()}
-                    </div>
-                    <div className="space-y-1">
-                      {dayAppointments.map((app) => (
-                        <div
-                          key={app.id}
-                          onClick={() => handleOpenDialog(app)}
-                          className={`text-xs p-1 rounded ${getCellClass(app.time, app.box)}`}
-                        >
-                          <div className="font-medium">{app.time}</div>
-                          <div>{app.treatmentName}</div>
-                          <div className="text-xs">{app.box}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </TableCell>
-                );
-              })}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    );
-  };
 
   const DailyView = () => {
     return (
@@ -1351,7 +1360,7 @@ export default function AgendaTab() {
                             <div key={treatment.id} className="text-sm truncate">{treatment.name}</div>
                           ))}
                           {availableTreatments.length > 3 && (
-                            <div className="text-xs text-gray-500">+{availableTreatments.length - 3} más</div>
+                            <div className="text-xs text-gray-500">+{availableTreatments.length - 3} mÃ¡s</div>
                           )}
                         </div>
                       ) : null}
@@ -1366,86 +1375,26 @@ export default function AgendaTab() {
     );
   };
 
-  const AGENDA2 = () => {
-    const timeSlots = Array.from({ length: 25 }, (_, i) => {
-        const hour = Math.floor(i / 2) + 8; // Horas de 08:00 a 20:00
-        const minutes = (i % 2) * 30; // 0 o 30 minutos
-        return `${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-    });
-
-    return (
-        <div className="overflow-x-auto">
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>Hora</TableHead>
-                        {boxes.map((box) => (
-                            <TableHead key={box}>{box}</TableHead>
-                        ))}
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {timeSlots.map((time) => (
-                        <TableRow key={time}>
-                            <TableCell>{time}</TableCell>
-                            {boxes.map((box) => (
-                                <TableCell key={`${time}-${box}`} style={{ position: 'relative', height: '60px' }}>
-                                    {/* Aquí se renderizarán los sub-tratamientos */}
-                                </TableCell>
-                            ))}
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
-        </div>
-    );
-  };
-
-  const handleDrop = (time: string, box: string, treatment: Treatment) => {
-    // Lógica para manejar el arrastre y soltar el tratamiento en la celda correspondiente
-    // Ajustar el tamaño de la celda según la duración del tratamiento
-    console.log(`Dropped treatment ${treatment.name} at ${time} in ${box}`);
-  };
-
-  const renderTreatmentCell = (treatment: Treatment) => {
-    const durationInMinutes = treatment.duration || 30; // Duración en minutos
-    const height = (durationInMinutes / 30) * 60; // Ajustar la altura de la celda
-
-    return (
-        <div
-            style={{ height: `${height}px`, cursor: 'move' }}
-            draggable
-            onDragEnd={() => handleDrop(treatment.availability?.[0]?.startTime || '09:00', treatment.availability?.[0]?.box || 'Box 1', treatment)}
-        >
-            {treatment.name}
-        </div>
-    );
-  };
-
-  // Función para abrir el diálogo del turno especial
+  // FunciÃ³n para abrir el diÃ¡logo del turno especial
   const openSpecialAppointmentDialog = () => {
-    setSpecialAppointment(
-      {
-        ...initialSpecialAppointment,
-        newClientName: '',
-        newClientPhone: ''
-      }
-    );
+    setSpecialAppointment({
+      ...initialSpecialAppointment,
+      newClientName: '',
+      newClientPhone: ''
+    });
     setIsSpecialDialogOpen(true);
   };
 
-  // Función para resetear el formulario del turno especial
+  // FunciÃ³n para resetear el formulario del turno especial
   const resetSpecialForm = () => {
-    setSpecialAppointment(
-      {
-        ...initialSpecialAppointment,
-        newClientName: '',
-        newClientPhone: ''
-      }
-    );
+    setSpecialAppointment({
+      ...initialSpecialAppointment,
+      newClientName: '',
+      newClientPhone: ''
+    });
   };
 
-  // Función para manejar la creación del turno especial
+  // FunciÃ³n para manejar la creaciÃ³n del turno especial
   const handleCreateSpecialAppointment = async (e: FormEvent) => {
     e.preventDefault();
     
@@ -1455,8 +1404,27 @@ export default function AgendaTab() {
     }
 
     try {
+        // Obtener el tratamiento seleccionado para acceder a su nombre
+        const selectedTreatment = treatments.find(t => t.id === specialAppointment.treatmentId);
+        
+        // Obtener el profesional seleccionado para acceder a su nombre
+        const selectedProfessional = professionals.find(p => p.id === specialAppointment.professionalId);
+        
+        // Obtener el cliente seleccionado para acceder a su nombre
+        const selectedClient = specialAppointment.clientId 
+            ? clients.find(c => c.id === specialAppointment.clientId)
+            : null;
+        
         // Omitir los campos adicionales al enviar al API
-        const { newClientName, newClientPhone, ...appointmentData } = specialAppointment;
+        const { newClientName, newClientPhone, ...appointmentDataBase } = specialAppointment;
+        
+        // Crear el objeto con todos los campos requeridos
+        const appointmentData = {
+            ...appointmentDataBase,
+            treatmentName: selectedTreatment?.name || null,
+            professionalName: selectedProfessional?.name || null,
+            clientName: selectedClient?.name || null
+        };
         
         const response = await fetch("/api/appointments", {
             method: "POST",
@@ -1480,14 +1448,6 @@ export default function AgendaTab() {
         console.error("Error creando el turno especial:", error);
         alert(`Error al crear el turno especial: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     }
-  };
-
-  const getEndTime = (startTime: string, durationMinutes: number) => {
-    const [hours, minutes] = startTime.split(':').map(Number);
-    const totalMinutes = hours * 60 + minutes + durationMinutes;
-    const endHours = Math.floor(totalMinutes / 60);
-    const endMinutes = totalMinutes % 60;
-    return `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}`;
   };
 
   return (
@@ -1521,31 +1481,17 @@ export default function AgendaTab() {
             <Button variant="ghost" size="icon" onClick={() => changeDate("next")}>
               <ChevronRight className="h-4 w-4" />
             </Button>
+            <div className="ml-4">
+              <Input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="w-40"
+              />
+            </div>
           </div>
           
-          <div className="flex space-x-2">
-            <Button 
-              onClick={() => setView('daily')} 
-              variant={view === 'daily' ? 'default' : 'ghost'}
-              size="sm"
-            >
-              Día
-            </Button>
-            <Button 
-              onClick={() => setView('weekly')} 
-              variant={view === 'weekly' ? 'default' : 'ghost'}
-              size="sm"
-            >
-              Semana
-            </Button>
-            <Button 
-              onClick={() => setView('monthly')} 
-              variant={view === 'monthly' ? 'default' : 'ghost'}
-              size="sm"
-            >
-              Mes
-            </Button>
-          </div>
+          {/* Eliminamos los botones de vista semanal y mensual */}
         </div>
       </div>
 
@@ -1556,10 +1502,7 @@ export default function AgendaTab() {
           </CardHeader>
           <CardContent>
             <div className="relative">
-              {view === 'daily' && <DailyView />}
-              {view === 'weekly' && <WeeklyView />}
-              {view === 'monthly' && <MonthlyView />}
-              {view === 'agenda2' && <AGENDA2 />}
+              <DailyView />
             </div>
           </CardContent>
         </Card>
@@ -1709,11 +1652,11 @@ export default function AgendaTab() {
                     />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="newClientPhone">Teléfono</Label>
+                    <Label htmlFor="newClientPhone">TelÃ©fono</Label>
                     <Input
                       id="newClientPhone"
                       name="newClientPhone"
-                      placeholder="Número de teléfono"
+                      placeholder="NÃºmero de telÃ©fono"
                       value={formData.newClientPhone}
                       onChange={handleInputChange}
                     />
@@ -1723,7 +1666,7 @@ export default function AgendaTab() {
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="deposit">Seña ($)</Label>
+                  <Label htmlFor="deposit">SeÃ±a ($)</Label>
                   <Input
                     id="deposit"
                     name="deposit"
@@ -1737,6 +1680,29 @@ export default function AgendaTab() {
                   <Input id="price" name="price" type="number" value={formData.price} onChange={handleInputChange} />
                 </div>
               </div>
+              
+              {/* Agregar selector de mÃ©todo de pago para la seÃ±a */}
+              {Number(formData.deposit) > 0 && (
+                <div className="grid gap-2">
+                  <Label htmlFor="depositPaymentMethod">MÃ©todo de Pago de la SeÃ±a</Label>
+                  <Select 
+                    value={formData.depositPaymentMethodId || ""} 
+                    onValueChange={(value) => handleSelectChange("depositPaymentMethodId", value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccione mÃ©todo de pago" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {paymentMethods.map((method) => (
+                        <SelectItem key={method.id} value={method.id.toString()}>
+                          {method.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              
               <div className="grid gap-2">
                 <Label htmlFor="notes">Observaciones</Label>
                 <Textarea id="notes" name="notes" value={formData.notes} onChange={handleInputChange} rows={3} />
@@ -1752,6 +1718,17 @@ export default function AgendaTab() {
                   >
                     Eliminar Turno
                   </Button>
+                  {Number(formData.deposit) > 0 && currentAppointment && !currentAppointment.depositPaid && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleSaveDeposit}
+                      className="flex items-center gap-2 bg-green-100 text-green-800 hover:bg-green-200"
+                      disabled={!formData.depositPaymentMethodId}
+                    >
+                      Registrar SeÃ±a
+                    </Button>
+                  )}
                   {(currentAppointment.status === "confirmed" || currentAppointment.status === "completed") && (
                     <Button
                       type="button"
@@ -1883,15 +1860,22 @@ export default function AgendaTab() {
                 <div>${getCartTotal()}</div>
               </div>
 
+              {currentAppointment?.deposit && currentAppointment.deposit > 0 && (
+                <div className="flex items-center justify-between text-green-600">
+                  <div className="font-medium">SeÃ±a pagada:</div>
+                  <div>${currentAppointment.deposit}</div>
+                </div>
+              )}
+
               <div className="grid gap-2">
-                <Label>Método de Pago</Label>
+                <Label>MÃ©todo de Pago</Label>
                 <div className="flex gap-2">
                   <Select
                     value={selectedPaymentMethod?.toString()}
                     onValueChange={(value) => setSelectedPaymentMethod(parseInt(value))}
                   >
                     <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Seleccione método de pago" />
+                      <SelectValue placeholder="Seleccione mÃ©todo de pago" />
                     </SelectTrigger>
                     <SelectContent>
                       {paymentMethods.map((method) => (
@@ -1925,14 +1909,19 @@ export default function AgendaTab() {
                       <div className="grid gap-1">
                         <div className="font-medium">
                           {paymentMethods.find(m => m.id === payment.paymentMethodId)?.name}
+                          {payment.reference === "SeÃ±a pagada previamente" && (
+                            <span className="ml-2 text-sm text-green-600">(SeÃ±a)</span>
+                          )}
                         </div>
                         <div className="text-sm text-muted-foreground">
                           ${payment.amount} {payment.reference && `- Ref: ${payment.reference}`}
                         </div>
                       </div>
-                      <Button variant="ghost" size="icon" onClick={() => handleRemovePayment(index)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {payment.reference !== "SeÃ±a pagada previamente" && (
+                        <Button variant="ghost" size="icon" onClick={() => handleRemovePayment(index)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -1944,7 +1933,7 @@ export default function AgendaTab() {
               </div>
 
               <div className="flex items-center justify-between font-medium text-lg">
-                <div>Saldo:</div>
+                <div>Saldo a pagar:</div>
                 <div>${getCartTotal() - getPaymentsTotal()}</div>
               </div>
             </div>
@@ -1954,14 +1943,17 @@ export default function AgendaTab() {
             <Button variant="outline" onClick={() => setIsCartOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={handleCompleteSale} disabled={getCartTotal() !== getPaymentsTotal()}>
+            <Button 
+              onClick={handleCompleteSale} 
+              disabled={(getCartTotal() - getPaymentsTotal()) !== 0}
+            >
               Completar Venta
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Diálogo para crear el TURNO ESPECIAL */}
+      {/* DiÃ¡logo para crear el TURNO ESPECIAL */}
       <Dialog open={isSpecialDialogOpen} onOpenChange={setIsSpecialDialogOpen}>
         <DialogContent>
           <DialogHeader>
