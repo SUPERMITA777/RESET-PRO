@@ -28,16 +28,18 @@ model Treatment {
 }
 
 model Availability {
-  id          Int       @id @default(autoincrement())
-  startDate   DateTime
-  endDate     DateTime
-  startTime   String
-  endTime     String
-  box         String
-  treatmentId Int
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime
-  Treatment   Treatment @relation(fields: [treatmentId], references: [id], onDelete: Cascade)
+  id            Int       @id @default(autoincrement())
+  startDate     DateTime
+  endDate       DateTime
+  startTime     String
+  endTime       String
+  box           String
+  treatmentId   Int
+  professionalId Int?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime
+  Treatment     Treatment @relation(fields: [treatmentId], references: [id], onDelete: Cascade)
+  professional  Professional? @relation(fields: [professionalId], references: [id], onDelete: SetNull)
 }
 
 model Professional {
