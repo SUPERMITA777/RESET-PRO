@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import fs from 'fs';
-import path from 'path';
 
 const prisma = new PrismaClient();
 
@@ -118,37 +116,36 @@ function cleanDataForCreate(data: any) {
   return result;
 }
 
-// Endpoint para restaurar un respaldo
+// Endpoint para restaurar un respaldo desde un archivo subido por el usuario
 export async function POST(request: NextRequest) {
   let errors = [];
   let successGroups = [];
   
   try {
     console.log('Iniciando proceso de restauración...');
-    const data = await request.json();
-    const { fileName } = data;
     
-    if (!fileName) {
+    // Obtener el archivo enviado
+    const formData = await request.formData();
+    const file = formData.get('backupFile') as File;
+    
+    if (!file) {
       return NextResponse.json(
-        { success: false, error: 'Nombre de archivo no proporcionado' },
+        { success: false, error: 'No se proporcionó un archivo de respaldo' },
         { status: 400 }
       );
     }
     
-    // Verificar que el archivo existe
-    const backupDir = path.join(process.cwd(), 'backups');
-    const filePath = path.join(backupDir, fileName);
-    
-    if (!fs.existsSync(filePath)) {
+    // Verificar que sea un archivo JSON
+    if (!file.name.endsWith('.json')) {
       return NextResponse.json(
-        { success: false, error: 'Archivo de respaldo no encontrado' },
-        { status: 404 }
+        { success: false, error: 'El archivo debe ser de tipo JSON' },
+        { status: 400 }
       );
     }
     
-    console.log(`Leyendo archivo de respaldo: ${fileName}`);
-    // Leer archivo
-    const fileContent = fs.readFileSync(filePath, 'utf8');
+    // Leer el contenido del archivo
+    console.log(`Leyendo archivo de respaldo: ${file.name}`);
+    const fileContent = await file.text();
     const backupData = JSON.parse(fileContent);
     console.log('Archivo de respaldo leído correctamente');
     
@@ -576,6 +573,8 @@ export async function POST(request: NextRequest) {
         errorMessage = 'La operación de restauración tardó demasiado tiempo. La base de datos puede ser demasiado grande para restaurar en una sola transacción. Intente con un respaldo más pequeño o contacte al administrador.';
       } else if (errorMessage.includes('Unknown argument') || errorMessage.includes('Invalid `prisma')) {
         errorMessage = `Error de validación al restaurar los datos: ${errorMessage}. El esquema de la base de datos puede haber cambiado desde que se creó el respaldo. Por favor contacte al administrador.`;
+      } else if (errorMessage.includes('Unexpected token') || errorMessage.includes('JSON')) {
+        errorMessage = 'El archivo de respaldo no es un JSON válido. Por favor seleccione un archivo de respaldo correcto.';
       }
     }
     
@@ -587,41 +586,6 @@ export async function POST(request: NextRequest) {
         successGroups,
         errors: [...errors, errorMessage]
       },
-      { status: 500 }
-    );
-  }
-}
-
-// Endpoint para listar respaldos disponibles
-export async function GET() {
-  try {
-    const backupDir = path.join(process.cwd(), 'backups');
-    
-    // Crear directorio si no existe
-    if (!fs.existsSync(backupDir)) {
-      fs.mkdirSync(backupDir, { recursive: true });
-      return NextResponse.json({ backups: [] });
-    }
-    
-    // Leer archivos en el directorio
-    const files = fs.readdirSync(backupDir)
-      .filter(file => file.endsWith('.json'))
-      .map(file => {
-        const filePath = path.join(backupDir, file);
-        const stats = fs.statSync(filePath);
-        return {
-          fileName: file,
-          size: stats.size,
-          createdAt: stats.birthtime
-        };
-      })
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()); // Ordenar por fecha descendente
-    
-    return NextResponse.json({ backups: files });
-  } catch (error) {
-    console.error('Error al listar respaldos:', error);
-    return NextResponse.json(
-      { success: false, error: 'Error al listar respaldos' },
       { status: 500 }
     );
   }

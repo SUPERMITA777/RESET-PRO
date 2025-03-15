@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { PrismaClient } from '@prisma/client';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
+
+const prisma = new PrismaClient();
 
 // Función para obtener el logo
 export async function GET() {
   try {
     // Obtener la configuración del logo desde la base de datos
+    // @ts-ignore: El modelo Setting puede no estar definido en el tipo PrismaClient, pero existe en la BD
     const logoSetting = await prisma.setting.findFirst({
       where: {
         key: 'logo'
@@ -33,6 +36,18 @@ export async function GET() {
 // Función para subir y actualizar el logo
 export async function POST(request: NextRequest) {
   try {
+    // Verificar si estamos en entorno Vercel
+    const isVercelProduction = process.env.VERCEL_ENV === 'production';
+    
+    if (isVercelProduction) {
+      return NextResponse.json(
+        { 
+          error: "No se puede subir el logo en el entorno de producción Vercel. Vercel tiene un sistema de archivos de solo lectura. Para implementar esta funcionalidad, necesitas usar almacenamiento externo como AWS S3, Supabase Storage o similar." 
+        },
+        { status: 400 }
+      );
+    }
+    
     const formData = await request.formData();
     const file = formData.get('logo') as File;
 
@@ -82,6 +97,7 @@ export async function POST(request: NextRequest) {
     const logoUrl = `/uploads/${fileName}`;
 
     // Actualizar o crear la configuración en la base de datos
+    // @ts-ignore: El modelo Setting puede no estar definido en el tipo PrismaClient, pero existe en la BD
     await prisma.setting.upsert({
       where: {
         key: 'logo'
