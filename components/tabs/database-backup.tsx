@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Loader2, Download, Upload, Database, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Loader2, Download, Upload, Database, AlertTriangle, CheckCircle, Archive } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from '@/components/ui/use-toast';
 
@@ -22,6 +22,9 @@ export default function DatabaseBackup() {
   const [restoreLoading, setRestoreLoading] = useState(false);
   const [selectedBackup, setSelectedBackup] = useState<string | null>(null);
   const [restoreDialogOpen, setRestoreDialogOpen] = useState(false);
+  const [restoreStatus, setRestoreStatus] = useState<string>("");
+  const [createLoading, setCreateLoading] = useState(false);
+  const [createStatus, setCreateStatus] = useState<string>("");
 
   // Cargar lista de respaldos
   const loadBackups = async () => {
@@ -44,39 +47,66 @@ export default function DatabaseBackup() {
 
   // Crear respaldo
   const createBackup = async () => {
-    setBackupLoading(true);
     try {
-      const response = await fetch('/api/database/backup');
-      const data = await response.json();
-      
-      if (data.success) {
+      setCreateLoading(true);
+      setCreateStatus("Creando respaldo...");
+
+      const response = await fetch('/api/database/backup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Error al crear respaldo");
+      }
+
+      if (result.success) {
         toast({
-          title: 'Respaldo creado',
-          description: `El respaldo ${data.fileName} se ha creado correctamente`,
-          variant: 'default',
+          title: "Éxito",
+          description: "Respaldo creado correctamente.",
+          variant: "default",
         });
-        loadBackups(); // Recargar lista de respaldos
+        setCreateStatus("Respaldo creado correctamente");
+        // Recargar lista de respaldos
+        loadBackups();
       } else {
-        throw new Error(data.error || 'Error desconocido');
+        throw new Error(result.error || "Error al crear respaldo");
       }
     } catch (error) {
-      console.error('Error al crear respaldo:', error);
+      console.error("Error al crear respaldo:", error);
+      const errorMessage = error instanceof Error ? error.message : "Error desconocido";
+      
       toast({
-        title: 'Error',
-        description: 'No se pudo crear el respaldo',
-        variant: 'destructive',
+        title: "Error",
+        description: `Error al crear respaldo: ${errorMessage}`,
+        variant: "destructive",
+        duration: 6000,
       });
+      setCreateStatus(`Falló la creación: ${errorMessage}`);
     } finally {
-      setBackupLoading(false);
+      setCreateLoading(false);
     }
   };
 
   // Restaurar respaldo
   const restoreBackup = async () => {
-    if (!selectedBackup) return;
-    
-    setRestoreLoading(true);
+    if (!selectedBackup) {
+      toast({
+        title: "Error",
+        description: "Por favor seleccione un respaldo para restaurar.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
+      setRestoreLoading(true);
+      setRestoreStatus("Iniciando restauración de la base de datos...");
+
       const response = await fetch('/api/database/restore', {
         method: 'POST',
         headers: {
@@ -84,28 +114,75 @@ export default function DatabaseBackup() {
         },
         body: JSON.stringify({ fileName: selectedBackup }),
       });
-      
-      const data = await response.json();
-      
-      if (data.success) {
+
+      // Si la respuesta tarda más de 5 segundos, mostrar mensaje de espera
+      const messageTimeout = setTimeout(() => {
+        setRestoreStatus("La restauración está en progreso. Esto puede tardar varios minutos para bases de datos grandes...");
+      }, 5000);
+
+      // Si tarda más de 30 segundos, actualizar nuevamente el mensaje
+      const longMessageTimeout = setTimeout(() => {
+        setRestoreStatus("La restauración continúa en proceso. Por favor no cierre esta ventana...");
+      }, 30000);
+
+      const result = await response.json();
+
+      // Limpiar los timeouts cuando tengamos respuesta
+      clearTimeout(messageTimeout);
+      clearTimeout(longMessageTimeout);
+
+      if (!response.ok) {
+        // Si hay éxito parcial, mostrar un mensaje diferente
+        if (result.partialSuccess) {
+          const successGroupsText = result.successGroups.join(', ');
+          toast({
+            title: "Restauración Parcial",
+            description: `Se restauraron parcialmente los datos. Grupos restaurados: ${successGroupsText}`,
+            variant: "default",
+            duration: 8000,
+          });
+          setRestoreStatus(`Restauración parcial completada. Se restauraron: ${successGroupsText}. Algunos datos no pudieron ser restaurados debido a incompatibilidades.`);
+          setTimeout(() => setRestoreDialogOpen(false), 5000);
+          return;
+        }
+        
+        throw new Error(result.error || "Error al restaurar la base de datos");
+      }
+
+      if (result.success) {
         toast({
-          title: 'Base de datos restaurada',
-          description: 'La base de datos se ha restaurado correctamente',
-          variant: 'default',
+          title: "Éxito",
+          description: "Base de datos restaurada correctamente.",
+          variant: "default",
         });
+        setRestoreStatus("Restauración completada correctamente");
         setRestoreDialogOpen(false);
       } else {
-        throw new Error(data.error || 'Error desconocido');
+        throw new Error(result.error || "Error al restaurar la base de datos");
       }
     } catch (error) {
-      console.error('Error al restaurar la base de datos:', error);
+      console.error("Error al restaurar la base de datos:", error);
+      const errorMessage = error instanceof Error ? error.message : "Error al restaurar la base de datos";
+      
+      let displayError = errorMessage;
+      // Simplificar mensajes de error comunes
+      if (errorMessage.includes("tardó demasiado tiempo")) {
+        displayError = "La operación tomó demasiado tiempo. La base de datos puede ser muy grande.";
+      } else if (errorMessage.includes("Error de validación")) {
+        displayError = "El formato del respaldo es incompatible con la versión actual de la aplicación.";
+      }
+      
       toast({
-        title: 'Error',
-        description: 'No se pudo restaurar la base de datos',
-        variant: 'destructive',
+        title: "Error",
+        description: `Error al restaurar la base de datos: ${displayError}`,
+        variant: "destructive",
+        duration: 6000,
       });
+      setRestoreStatus(`Falló la restauración: ${displayError}`);
     } finally {
       setRestoreLoading(false);
+      // Recargar lista de respaldos
+      loadBackups();
     }
   };
 
@@ -157,18 +234,32 @@ export default function DatabaseBackup() {
           
           <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
             <h3 className="text-lg font-medium">Respaldos disponibles</h3>
-            <Button 
-              onClick={createBackup} 
-              disabled={backupLoading}
-              className="flex items-center gap-2"
-            >
-              {backupLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Download className="h-4 w-4" />
+            
+            <div className="flex flex-col items-end gap-2 w-full sm:w-auto">
+              {createStatus && (
+                <div className="p-2 bg-secondary rounded-md w-full sm:w-auto">
+                  <p className="text-xs font-medium">{createStatus}</p>
+                </div>
               )}
-              Crear Respaldo
-            </Button>
+              
+              <Button 
+                onClick={createBackup} 
+                disabled={createLoading}
+                className="flex items-center gap-2"
+              >
+                {createLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Creando...
+                  </>
+                ) : (
+                  <>
+                    <Download className="h-4 w-4" />
+                    Crear Respaldo
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
           
           {loading ? (
@@ -214,37 +305,47 @@ export default function DatabaseBackup() {
                           </DialogTrigger>
                           <DialogContent>
                             <DialogHeader>
-                              <DialogTitle>Confirmar Restauración</DialogTitle>
+                              <DialogTitle>Restaurar base de datos</DialogTitle>
                               <DialogDescription>
-                                ¿Estás seguro de que deseas restaurar la base de datos con el respaldo <strong>{backup.fileName}</strong>?
-                                <br /><br />
-                                <span className="text-destructive font-semibold">
-                                  ¡Advertencia! Esta acción sobrescribirá todos los datos actuales.
+                                ¿Está seguro que desea restaurar la base de datos con el respaldo: {backup.fileName}?
+                                <br />
+                                Esta acción no se puede deshacer y reemplazará todos los datos actuales.
+                                <br />
+                                <br />
+                                <span className="font-medium text-yellow-600">
+                                  La restauración puede tardar varios minutos si la base de datos es grande.
+                                  No cierre la aplicación durante este proceso.
                                 </span>
                               </DialogDescription>
                             </DialogHeader>
+                            
+                            {restoreStatus && (
+                              <div className="my-2 p-3 bg-secondary rounded-md">
+                                <p className="text-sm font-medium">{restoreStatus}</p>
+                              </div>
+                            )}
+                            
                             <DialogFooter>
-                              <Button 
-                                variant="outline" 
-                                onClick={() => {
-                                  setRestoreDialogOpen(false);
-                                  setSelectedBackup(null);
-                                }}
+                              <Button
+                                variant="outline"
+                                onClick={() => setRestoreDialogOpen(false)}
+                                disabled={restoreLoading}
                               >
                                 Cancelar
                               </Button>
-                              <Button 
-                                variant="destructive"
+                              <Button
+                                variant="default"
                                 onClick={restoreBackup}
                                 disabled={restoreLoading}
-                                className="flex items-center gap-2"
                               >
                                 {restoreLoading ? (
-                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                  <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Restaurando...
+                                  </>
                                 ) : (
-                                  <AlertTriangle className="h-4 w-4" />
+                                  "Restaurar"
                                 )}
-                                Restaurar
                               </Button>
                             </DialogFooter>
                           </DialogContent>
