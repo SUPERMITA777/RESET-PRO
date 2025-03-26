@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+<<<<<<< HEAD
 // GET - Obtener todos los profesionales
 export async function GET() {
   try {
@@ -44,10 +45,35 @@ export async function GET() {
         { 
           error: 'Error de conexión con la base de datos',
           details: error.message
+=======
+export async function GET(request: NextRequest) {
+  try {
+    console.log('Iniciando solicitud de profesionales');
+    
+    const professionals = await prisma.professional.findMany({
+      include: {
+        availability: true,
+      },
+    });
+    
+    console.log('Profesionales obtenidos exitosamente');
+    return NextResponse.json(professionals);
+  } catch (error) {
+    console.error('Error detallado al obtener profesionales:', error);
+    
+    // Manejo específico de errores de base de datos
+    if (error instanceof Error) {
+      return NextResponse.json(
+        { 
+          error: 'Error al obtener profesionales', 
+          details: error.message,
+          stack: error.stack 
+>>>>>>> d5d5f735d3778854f3df0dd0220036bc9b4cbbdb
         },
         { status: 500 }
       );
     }
+<<<<<<< HEAD
 
     return NextResponse.json(
       { 
@@ -64,6 +90,13 @@ export async function GET() {
     } catch (disconnectError) {
       console.error('Error al cerrar la conexión:', disconnectError);
     }
+=======
+    
+    return NextResponse.json(
+      { error: 'Error desconocido al obtener profesionales' },
+      { status: 500 }
+    );
+>>>>>>> d5d5f735d3778854f3df0dd0220036bc9b4cbbdb
   }
 }
 
@@ -71,6 +104,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+<<<<<<< HEAD
     console.log('Datos recibidos para crear profesional:', body);
 
     // Validar datos requeridos
@@ -114,6 +148,22 @@ export async function POST(request: NextRequest) {
         details: error.message || String(error),
         code: error.code
       },
+=======
+    
+    // Simulamos la creación de un nuevo profesional
+    const newProfessional = {
+      id: Math.floor(Math.random() * 1000) + 6,
+      name: body.name,
+      specialty: body.specialty,
+      availability: []
+    };
+    
+    return NextResponse.json(newProfessional);
+  } catch (error) {
+    console.error('Error al crear profesional:', error);
+    return NextResponse.json(
+      { error: 'Error al crear profesional' },
+>>>>>>> d5d5f735d3778854f3df0dd0220036bc9b4cbbdb
       { status: 500 }
     );
   }
@@ -123,6 +173,7 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
+<<<<<<< HEAD
     console.log('Datos recibidos para actualizar profesional:', body);
 
     if (!body.id) {
@@ -193,6 +244,22 @@ export async function PUT(request: NextRequest) {
         details: error.message || String(error),
         code: error.code
       },
+=======
+    
+    // Simulamos la actualización de un profesional
+    const updatedProfessional = {
+      id: body.id,
+      name: body.name,
+      specialty: body.specialty,
+      availability: body.availability || []
+    };
+    
+    return NextResponse.json(updatedProfessional);
+  } catch (error) {
+    console.error('Error al actualizar profesional:', error);
+    return NextResponse.json(
+      { error: 'Error al actualizar profesional' },
+>>>>>>> d5d5f735d3778854f3df0dd0220036bc9b4cbbdb
       { status: 500 }
     );
   }
@@ -210,6 +277,7 @@ export async function DELETE(request: NextRequest) {
         { status: 400 }
       );
     }
+<<<<<<< HEAD
 
     // Verificar que el profesional existe
     const existingProfessional = await prisma.professional.findUnique({
@@ -254,6 +322,15 @@ export async function DELETE(request: NextRequest) {
         details: error.message || String(error),
         code: error.code
       },
+=======
+    
+    // Simulamos la eliminación de un profesional
+    return NextResponse.json({ success: true, id });
+  } catch (error) {
+    console.error('Error al eliminar profesional:', error);
+    return NextResponse.json(
+      { error: 'Error al eliminar profesional' },
+>>>>>>> d5d5f735d3778854f3df0dd0220036bc9b4cbbdb
       { status: 500 }
     );
   }

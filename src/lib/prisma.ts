@@ -4,9 +4,13 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 };
 
-export const prisma = globalForPrisma.prisma ?? new PrismaClient({
-  log: ['query', 'error', 'warn'],
-});
+const prismaClientSingleton = () => {
+  return new PrismaClient({
+    log: ['query', 'info', 'warn', 'error'],
+  });
+};
+
+export const prisma = globalForPrisma.prisma ?? prismaClientSingleton();
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 
@@ -14,10 +18,9 @@ if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 export async function checkDatabaseConnection() {
   try {
     await prisma.$connect();
-    console.log('Conexión a la base de datos establecida correctamente');
     return true;
   } catch (error) {
-    console.error('Error al conectar con la base de datos:', error);
+    console.error('Error de conexión con la base de datos:', error);
     return false;
   }
-} 
+}

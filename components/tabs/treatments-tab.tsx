@@ -426,11 +426,10 @@ export default function TreatmentsTab() {
       return;
     }
 
-    setIsLoading(true);
-    setError(null);
-
     try {
+      setIsLoading(true);
       console.log('Iniciando eliminación del tratamiento:', id);
+
       const response = await fetch(`/api/treatments/${id}`, {
         method: 'DELETE',
       });
@@ -447,18 +446,14 @@ export default function TreatmentsTab() {
         throw new Error('Error al procesar la respuesta del servidor');
       }
 
-      if (!response.ok) {
+      if (!response.ok || !responseData.success) {
         console.error('Error en la respuesta:', responseData);
         throw new Error(responseData.error || 'Error al eliminar el tratamiento');
       }
 
-      if (!responseData.success) {
-        throw new Error(responseData.error || 'Error al eliminar el tratamiento');
-      }
-
-      // Actualizar la lista de tratamientos
-      await fetchTreatments();
-      toast.success('Tratamiento eliminado correctamente');
+      console.log('Tratamiento eliminado exitosamente');
+      setTreatments(treatments.filter((t) => t.id !== id));
+      toast.success('Tratamiento eliminado exitosamente');
     } catch (error: any) {
       console.error('Error en handleDelete:', error);
       setError(error.message || 'Error al eliminar el tratamiento');
