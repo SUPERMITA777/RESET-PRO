@@ -1,0 +1,36 @@
+{
+  "version": 2,
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "outputDirectory": ".next",
+  "regions": ["cdg1"],
+  "env": {
+    "DATABASE_URL": "postgresql://neondb_owner:npg_Chb9LgKPs4mF@ep-withered-mud-a8vh18zd-pooler.eastus2.azure.neon.tech/neondb?sslmode=require",
+    "NEXTAUTH_SECRET": "Hs7GdjE9KfLn5tP3RzQw8XcVbA6YmU2S",
+    "NEXTAUTH_URL": "https://reset-pro.vercel.app",
+    "JWT_SECRET": "Jd7FpQ2RzT9XcVbN5mK3HsL8GaE4YwU6",
+    "NEXT_PUBLIC_APP_NAME": "RESET-PRO",
+    "NEXT_PUBLIC_APP_URL": "https://reset-pro.vercel.app"
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
+    }
+  ]
+} 

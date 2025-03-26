@@ -1,0 +1,191 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = []
+  binaryTargets   = ["native", "rhel-openssl-1.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Treatment {
+  id              Int            @id @default(autoincrement())
+  name            String
+  description     String
+  duration        Int
+  price           Float
+  isSubtreatment  Boolean        @default(false)
+  parentId        Int?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  alwaysAvailable Boolean        @default(false)
+  appointments    Appointment[]  @relation("TreatmentToAppointment")
+  Availability    Availability[]
+  saleItems       SaleItem[]
+  parent          Treatment?     @relation("SubTreatments", fields: [parentId], references: [id])
+  subTreatments   Treatment[]    @relation("SubTreatments")
+}
+
+model Availability {
+  id          Int       @id @default(autoincrement())
+  startDate   DateTime
+  endDate     DateTime
+  startTime   String
+  endTime     String
+  box         String
+  treatmentId Int
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime
+  Treatment   Treatment @relation(fields: [treatmentId], references: [id], onDelete: Cascade)
+}
+
+model Professional {
+  id                       Int                       @id @default(autoincrement())
+  name                     String
+  specialty                String?
+  createdAt                DateTime                  @default(now())
+  updatedAt                DateTime                  @updatedAt
+  appointments             Appointment[]
+  professionalAvailability ProfessionalAvailability?
+}
+
+model ProfessionalAvailability {
+  id             Int          @id @default(autoincrement())
+  startDate      DateTime
+  endDate        DateTime
+  startTime      String
+  endTime        String
+  professionalId Int          @unique
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  professional   Professional @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+}
+
+model Client {
+  id             Int           @id @default(autoincrement())
+  name           String
+  email          String?
+  phone          String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  medicalHistory String?
+  appointments   Appointment[] @relation("ClientToAppointment")
+  sales          Sale[]
+}
+
+model Appointment {
+  id             Int           @id @default(autoincrement())
+  date           DateTime
+  time           String
+  status         String
+  professionalId Int?
+  treatmentId    Int?
+  clientId       Int?
+  box            String
+  deposit        Int           @default(0)
+  price          Int
+  notes          String?
+  duration       Int?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  client         Client?       @relation("ClientToAppointment", fields: [clientId], references: [id])
+  professional   Professional? @relation(fields: [professionalId], references: [id])
+  treatment      Treatment?    @relation("TreatmentToAppointment", fields: [treatmentId], references: [id])
+  sales          Sale[]
+}
+
+model Product {
+  id          Int        @id @default(autoincrement())
+  name        String
+  description String?
+  price       Float
+  stock       Int        @default(0)
+  category    String?
+  brand       String?
+  code        String?    @unique
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  saleItems   SaleItem[]
+}
+
+model PaymentMethod {
+  id        Int       @id @default(autoincrement())
+  name      String
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  payments  Payment[]
+}
+
+model Sale {
+  id            Int          @id @default(autoincrement())
+  date          DateTime     @default(now())
+  clientId      Int?
+  appointmentId Int?
+  total         Float
+  status        String
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  payments      Payment[]
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
+  client        Client?      @relation(fields: [clientId], references: [id])
+  items         SaleItem[]
+}
+
+model SaleItem {
+  id          Int        @id @default(autoincrement())
+  saleId      Int
+  productId   Int?
+  treatmentId Int?
+  quantity    Int
+  price       Float
+  subtotal    Float
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  product     Product?   @relation(fields: [productId], references: [id])
+  sale        Sale       @relation(fields: [saleId], references: [id])
+  treatment   Treatment? @relation(fields: [treatmentId], references: [id])
+}
+
+model Payment {
+  id              Int           @id @default(autoincrement())
+  saleId          Int
+  paymentMethodId Int
+  amount          Float
+  reference       String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  paymentMethod   PaymentMethod @relation(fields: [paymentMethodId], references: [id])
+  sale            Sale          @relation(fields: [saleId], references: [id])
+}
+
+model Expense {
+  id          Int      @id @default(autoincrement())
+  description String
+  amount      Float
+  date        DateTime
+  category    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  username  String    @unique
+  password  String
+  name      String
+  email     String?   @unique
+  role      UserRole  @default(OPERATOR)
+  isActive  Boolean   @default(true)
+  lastLogin DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  OPERATOR
+  READONLY
+}

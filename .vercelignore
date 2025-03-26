@@ -1,0 +1,33 @@
+# Archivos y directorios a ignorar en el despliegue de Vercel
+
+# Archivos de desarrollo
+.git
+.github
+.vscode
+.idea
+*.log
+*.db
+*.db-journal
+
+# Archivos de construcción
+node_modules
+.next
+out
+build
+dist
+
+# Archivos de configuración local
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Archivos de respaldo
+*.bak
+*.backup
+*.swp
+*~
+
+# Archivos específicos del proyecto
+reset-soft-admin v1.zip
+NOIP-CONFIGURACION.md 
